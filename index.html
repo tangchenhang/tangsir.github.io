@@ -3,9 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>抽签器 — 导入名字 & 随机抽取</title>
+  <title>多人协作抽签系统</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage/dist/av-min.js"></script>
+  <!-- LeanCloud SDK（必须在你的 JS 之前加载） -->
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.0/dist/av-min.js"></script>
+
   <style>
     :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;--glass: rgba(255,255,255,0.04)}
     html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#e6eef6;background:linear-gradient(180deg,#071021 0%, #081322 100%)}
@@ -15,7 +17,7 @@
     .card{background:var(--card);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
     label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
     textarea{width:100%;height:230px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit;resize:vertical}
-    input[type=text], input[type=number], select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    input[type=text], input[type=number]{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
     .btn{display:inline-block;padding:8px 12px;border-radius:8px;background:var(--accent);color:#042022;text-decoration:none;border:none;cursor:pointer;font-weight:600}
     .mutebtn{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
     .controls{display:flex;gap:8px;flex-wrap:wrap}
@@ -27,277 +29,251 @@
     .file-row{display:flex;gap:8px;align-items:center}
   </style>
 </head>
+
 <body>
   <div class="container">
-    <h1>抽签器 — 导入名字并随机抽取</h1>
-    <p class="small">支持手动粘贴、CSV 导入；可选择抽取人数、导出结果、去重与复选项。页面为单文件运行，直接保存为 .html 即可本地打开。</p >
+    <h1>多人协作抽签系统</h1>
+    <p class="small">支持：多人在线填写名字、自动同步、管理员抽签与清空功能。</p >
 
     <div class="grid">
+
+      <!-- 左侧主卡片 -->
       <div class="card">
-        <label>1) 导入名字（每行一个姓名，或逗号分隔）</label>
-        <textarea id="namesInput" placeholder="例如：张三\n李四\n王五 或 张三,李四,王五"></textarea>
+        <label>1) 当前名单（多人编辑自动同步）</label>
+        <textarea id="namesInput" placeholder="自动同步云端名单..." disabled></textarea>
 
         <div style="margin-top:10px" class="file-row">
-          <input id="csvFile" type="file" accept=".csv" />
-          <button class="btn" id="importCsvBtn">从 CSV 导入</button>
-          <button class="mutebtn" id="clearNamesBtn">清空</button>
+          <button class="btn" id="addMyNameBtn">我也要提交名字</button>
+          <button class="mutebtn" id="clearNamesBtn" disabled>清空名单（房主）</button>
         </div>
 
         <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)" />
 
-        <label>2) 抽取设置</label>
+        <label>2) 抽签设置（房主可用）</label>
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <div style="flex:1">
             <label class="small">抽取人数</label>
             <input id="count" type="number" min="1" value="1" />
           </div>
-          <div style="width:140px">
-            <label class="small">是否去重</label>
-            <select id="uniqueSelect"><option value="true">是（默认）</option><option value="false">否（允许重复）</option></select>
-          </div>
         </div>
 
-        <label class="small">额外选项</label>
-        <div class="controls" style="margin-bottom:8px">
-          <label class="small" style="display:flex;align-items:center;gap:8px"><input id="excludeBlank" type="checkbox" checked /> 排除空行</label>
-          <label class="small" style="display:flex;align-items:center;gap:8px"><input id="shuffleBefore" type="checkbox" checked /> 抽前先打乱名单</label>
-        </div>
-
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn" id="drawBtn">开始抽签</button>
-          <button class="mutebtn" id="previewBtn">预览名单</button>
-          <button class="mutebtn" id="exportAllBtn">导出名单 (CSV)</button>
-        </div>
+        <button class="btn" id="drawBtn" disabled>开始抽签（房主）</button>
       </div>
 
+      <!-- 右侧显示区 -->
       <div class="card">
-        <label>3) 显示与结果</label>
+        <label>抽签结果</label>
         <div id="slots"></div>
-        <div class="winners-list" id="winners"></div>
-
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="btn" id="copyBtn">复制结果</button>
-          <button class="mutebtn" id="exportWinnersBtn">导出中奖名单 (CSV)</button>
-          <button class="mutebtn" id="resetBtn">重置抽奖</button>
-        </div>
+        <div id="winners" class="winners-list"></div>
 
         <div style="margin-top:12px">
-          <label class="small">日志</label>
+          <label class="small">系统日志</label>
           <pre id="log" style="max-height:140px;overflow:auto;padding:8px;background:rgba(0,0,0,0.15);border-radius:8px;color:var(--muted)"></pre>
         </div>
       </div>
+
     </div>
+    <script>
+    /********************************************
+     *  0. 初始化 LeanCloud
+     ********************************************/
+    AV.init({
+      appId: "awjrq2pnF6yDBX2QT7Sq1dHQ-gzGzoHsz",  
+      appKey: "WY6uq9q4hPthkwKX5JIHrlYk",
+      serverURL: "https://awjrq2pn.lc-cn-n1-shared.com"
+    });
 
-    <footer>提示：若名单很长，建议使用 CSV 导入（每行一个名字或第一列为名字）。需要在页面做其他定制（比如分组抽签或加权抽签）可以告诉我具体要求。</footer>
-  </div>
+    /********************************************
+     * 1. 全局变量 / 元素
+     ********************************************/
+    let isOwner = false;   // 你输入房主密码后变为 true
+    const ROOM_ID = "global-room";  // 所有人共享同一房间名单
 
-<script>
-  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.0/dist/av-min.js"></script>
-<script>
-/* ----------------------------
-   0. 初始化 LeanCloud
------------------------------ */
-AV.init({
-  appId: "awjrq2pnF6yDBX2QT7Sq1dHQ-gzGzoHsz",   // ← 换成你的
-  appKey: "WY6uq9q4hPthkwKX5JIHrlYk",           // ← 换成你的
-  serverURL: "https://awjrq2pn.lc-cn-n1-shared.com" // ← LeanCloud控制台可查
-});
+    const namesInput = document.getElementById("namesInput");
+    const addMyNameBtn = document.getElementById("addMyNameBtn");
+    const clearNamesBtn = document.getElementById("clearNamesBtn");
+    const drawBtn = document.getElementById("drawBtn");
+    const countInput = document.getElementById("count");
 
-/* ----------------------------
-   1. 全局变量
------------------------------ */
-let isOwner = false;   // 房主模式（你输入口令后变 true）
-const ROOM_ID = "global-room"; // 全局房间 ID，全员共享名单
-const NameList = new AV.Object.extend("NameList");
+    const logBox = document.getElementById("log");
+    const slots = document.getElementById("slots");
+    const winnersDiv = document.getElementById("winners");
 
-/* ----------------------------
-   2. UI 元素
------------------------------ */
-const namesInput = document.getElementById("namesInput");
-const drawBtn = document.getElementById("drawBtn");
-const clearNamesBtn = document.getElementById("clearNamesBtn");
-const logBox = document.getElementById("log");
-const slots = document.getElementById("slots");
-const winnersDiv = document.getElementById("winners");
+    const NameList = AV.Object.extend("NameList");  // 数据表
 
-/* 将清空按钮禁用（普通用户不能清空名单） */
-clearNamesBtn.disabled = true;
-
-/* ----------------------------
-   3. 房主口令验证
------------------------------ */
-(async function askOwnerPassword(){
-  const pw = prompt("请输入口令（房主可抽签+删除）：\n\n普通用户可直接点取消加入名单");
-  if(pw === "666888"){       // ← 你可以改成你自己的口令
-      isOwner = true;
-      clearNamesBtn.disabled = false;
-      drawBtn.disabled = false;
-      log("已进入房主模式");
-  } else {
-      isOwner = false;
-      drawBtn.disabled = true;
-      log("访客模式：你可以添加名字，但不能清空或抽签");
-  }
-})();
-
-/* ----------------------------
-   4. 日志函数
------------------------------ */
-function log(t){
-  logBox.textContent = new Date().toLocaleTimeString() + "  " + t + "\n" + logBox.textContent;
-}
-
-/* ----------------------------
-   5. 监听数据库变化（实时同步给所有人）
------------------------------ */
-async function subscribeRealtime(){
-    const query = new AV.Query("NameList");
-    query.equalTo("room", ROOM_ID);
-
-    const liveQuery = await query.subscribe();
-    liveQuery.on("create", refreshListFromCloud);
-    liveQuery.on("update", refreshListFromCloud);
-    liveQuery.on("delete", refreshListFromCloud);
-
-    log("已开启实时同步");
-}
-subscribeRealtime();
-
-/* ----------------------------
-   6. 从云端读取名单并刷新 UI
------------------------------ */
-async function refreshListFromCloud(){
-    const query = new AV.Query("NameList");
-    query.equalTo("room", ROOM_ID);
-    query.limit(500);
-
-    const results = await query.find();
-
-    const arr = results.map(r => r.get("name"));
-    namesInput.value = arr.join("\n");
-
-    log("云端名单已更新，共 " + arr.length + " 人");
-}
-
-/* 首次加载时也拉一次 */
-refreshListFromCloud();
-
-/* ----------------------------
-   7. 用户输入名单 → 自动写入云端
------------------------------ */
-namesInput.addEventListener("change", async ()=>{
-    // 普通用户也要写入云端，但是只能添加自己的名字
-    const newList = namesInput.value.split(/\n|,|;/).map(s => s.trim()).filter(Boolean);
-
-    // 清空表（只有房主可以）
-    if(isOwner){
-        const q = new AV.Query("NameList");
-        q.equalTo("room", ROOM_ID);
-        const results = await q.find();
-        await AV.Object.destroyAll(results);
+    /********************************************
+     * 2. 日志系统
+     ********************************************/
+    function log(msg){
+      const time = new Date().toLocaleTimeString();
+      logBox.textContent = `${time}  ${msg}\n` + logBox.textContent;
     }
 
-    // 全部重新写入（房主）
-    // 普通用户：只增加新名字
-    for(const nm of newList){
+    /********************************************
+     * 3. 房主验证（自动弹窗）
+     ********************************************/
+    (function(){
+        const pw = prompt("请输入房主口令（清空名单 / 抽签权限）：\n\n访客点取消即可加入名单");
+        if(pw === "666888"){   // ← 你可以自定义房主密码
+           isOwner = true;
+           clearNamesBtn.disabled = false;
+           drawBtn.disabled = false;
+           log("已进入房主模式");
+        } else {
+           isOwner = false;
+           drawBtn.disabled = true;
+          /********************************************
+     * 4. 从云端读取名单（自动同步显示）
+     ********************************************/
+    async function loadNamesFromCloud(){
+        const query = new AV.Query("NameList");
+        query.equalTo("room", ROOM_ID);
+        query.ascending("createdAt");
+
+        const results = await query.find();
+        const list = results.map(r => r.get("name"));
+
+        namesInput.value = list.join("\n");
+        log(`云端名单已加载，总人数：${list.length}`);
+    }
+
+    // 页面打开时加载一次
+    loadNamesFromCloud();
+
+
+    /********************************************
+     * 5. 实时同步（多人在线实时刷新）
+     ********************************************/
+    async function enableRealtime(){
+        const query = new AV.Query("NameList");
+        query.equalTo("room", ROOM_ID);
+
+        const liveQuery = await query.subscribe();
+        liveQuery.on("create", loadNamesFromCloud);
+        liveQuery.on("update", loadNamesFromCloud);
+        liveQuery.on("delete", loadNamesFromCloud);
+
+        log("已开启实时同步");
+    }
+    enableRealtime();
+
+
+    /********************************************
+     * 6. 访客：添加自己的名字到云端
+     ********************************************/
+    addMyNameBtn.addEventListener("click", async ()=>{
+        const name = prompt("请输入你的名字：");
+        if(!name){ return; }
+
         const obj = new NameList();
         obj.set("room", ROOM_ID);
-        obj.set("name", nm);
+        obj.set("name", name.trim());
+
         await obj.save();
-    }
 
-    log("已写入云端");
-});
-
-/* ----------------------------
-   8. 房主可清空列表
------------------------------ */
-clearNamesBtn.addEventListener("click", async ()=>{
-    if(!isOwner) return alert("你不是房主，不能清空");
-
-    if(!confirm("确定要清空名单吗？")) return;
-
-    const q = new AV.Query("NameList");
-    q.equalTo("room", ROOM_ID);
-    const results = await q.find();
-    await AV.Object.destroyAll(results);
-
-    namesInput.value = "";
-    log("已清空云端名单");
-});
-
-/* ----------------------------
-   9. 以下是你原有的抽签逻辑，不动 UI
------------------------------ */
-let lastWinners = [];
-
-function shuffle(array){
-    let a = array.slice();
-    for(let i=a.length-1;i>0;i--){
-        const j = Math.floor(Math.random() * (i+1));
-        [a[i],a[j]] = [a[j],a[i]];
-    }
-    return a;
-}
-
-function displaySlots(n){
-    slots.innerHTML = "";
-    for(let i=0;i<n;i++){
-        const div = document.createElement("div");
-        div.className = "animated-slot";
-        div.textContent = "— 抽签槽 " + (i+1);
-        slots.appendChild(div);
-    }
-}
-
-function animateReveal(names, duration=1200){
-    const slotEls = Array.from(slots.children);
-    const pool = namesInput.value.split("\n").filter(Boolean);
-    winnersDiv.innerHTML="";
-    lastWinners = [];
-
-    slotEls.forEach((el, idx)=>{
-        let r = 0;
-        let rounds = 18;
-        const interval = Math.max(20, duration/rounds);
-
-        const timer = setInterval(()=>{
-            el.textContent = pool[Math.floor(Math.random()*pool.length)] || "—";
-            r++;
-            if(r >= rounds){
-                clearInterval(timer);
-                el.textContent = names[idx] || "—";
-                const pill = document.createElement("span");
-                pill.className = "winner-pill";
-                pill.textContent = (idx+1) + ". " + (names[idx] || "—");
-                winnersDiv.appendChild(pill);
-                lastWinners.push(names[idx]||"");
-            }
-        }, interval);
+        log(`你添加了：${name}`);
+        loadNamesFromCloud();
     });
-}
 
-/* 房主点击抽签 */
-drawBtn.addEventListener("click", ()=>{
-    if(!isOwner){
-        return alert("你不是房主，不能抽签");
+
+    /********************************************
+     * 7. 房主：一键清空名单
+     ********************************************/
+    clearNamesBtn.addEventListener("click", async ()=>{
+        if(!isOwner){
+            alert("你不是房主，不能清空名单");
+            return;
+        }
+
+        if(!confirm("确定清空所有名字？")) return;
+
+        const query = new AV.Query("NameList");
+        query.equalTo("room", ROOM_ID);
+        const results = await query.find();
+        await AV.Object.destroyAll(results);
+
+        namesInput.value = "";
+        log("名单已被房主清空");
+    });
+
+
+    /********************************************
+     * 8. 抽签动画 + 房主抽签按钮
+     ********************************************/
+    function displaySlots(n){
+        slots.innerHTML = "";
+        for(let i=0;i<n;i++){
+            const div = document.createElement("div");
+            div.className = "animated-slot";
+            div.textContent = "— 抽签槽 " + (i+1);
+            slots.appendChild(div);
+        }
     }
 
-    const pool = namesInput.value.split("\n").filter(Boolean);
-    if(pool.length === 0){
-        alert("名单为空");
-        return;
+    function shuffle(arr){
+        let a = arr.slice();
+        for(let i=a.length-1;i>0;i--){
+            const j = Math.floor(Math.random()*(i+1));
+            [a[i],a[j]] = [a[j],a[i]];
+        }
+        return a;
     }
 
-    const n = parseInt(document.getElementById("count").value) || 1;
-    displaySlots(n);
+    function animateReveal(names){
+        const slotEls = Array.from(slots.children);
+        const pool = namesInput.value.split("\n").filter(Boolean);
 
-    const pick = shuffle(pool).slice(0,n);
-    animateReveal(pick, 1200);
+        winnersDiv.innerHTML = "";
 
-    log("已抽取 " + n + " 人");
-});
-</script>
+        slotEls.forEach((el, idx)=>{
+            let rounds = 18;
+            let r = 0;
+            const timer = setInterval(()=>{
+                el.textContent = pool[Math.floor(Math.random()*pool.length)] || "—";
+                r++;
+                if(r >= rounds){
+                    clearInterval(timer);
+                    el.textContent = names[idx];
+
+                    const pill = document.createElement("span");
+                    pill.className = "winner-pill";
+                    pill.textContent = (idx+1)+". "+names[idx];
+                    winnersDiv.appendChild(pill);
+                }
+            }, 40);
+        });
+    }
+
+
+    /********************************************
+     * 9. 房主点击抽签
+     ********************************************/
+    drawBtn.addEventListener("click", ()=>{
+        if(!isOwner){
+            alert("你不是房主，不能抽签");
+            return;
+        }
+
+        const pool = namesInput.value.split("\n").filter(Boolean);
+        if(pool.length === 0){
+            alert("名单为空");
+            return;
+        }
+
+        const n = Math.max(1, parseInt(countInput.value));
+        displaySlots(n);
+
+        const shuffled = shuffle(pool).slice(0, n);
+        animateReveal(shuffled);
+
+        log(`房主抽取了 ${n} 人`);
+    });
+
+    </script>
+  </div> <!-- container end -->
 </body>
 </html>
-
+           clearNamesBtn.disabled = true;
+           log("访客模式：你可以添加名字，但不能抽签或清空");
+        }
+    })();
