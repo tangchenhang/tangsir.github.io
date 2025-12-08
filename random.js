@@ -302,23 +302,44 @@ document.addEventListener('DOMContentLoaded', function() {
     loadNames(); // 重新加载名单
   }
 
-  /************** 房主清空 **************/
+  /************** 房主清空（含清空抽签结果） **************/
   clearNamesBtn.addEventListener("click", async () => {
     if (!isOwner) return;
 
-    if (!confirm("⚠️ 确定要清空所有名字吗？此操作不可恢复！")) return;
+    // 增强确认提示，告知会同时清空抽签结果
+    if (!confirm("⚠️ 确定要清空所有名字和历史抽签结果吗？此操作将重置系统，可开启新轮抽签！")) return;
 
-    const query = new AV.Query("NameList");
-    query.equalTo("room", ROOM_ID);
-    const res = await query.find();
-    await AV.Object.destroyAll(res);
+    try {
+      // 1. 清空名字列表
+      const nameQuery = new AV.Query("NameList");
+      nameQuery.equalTo("room", ROOM_ID);
+      const nameRes = await nameQuery.find();
+      await AV.Object.destroyAll(nameRes);
 
-    // 清空本地存储的用户名字
-    mySubmittedName = null;
-    localStorage.removeItem('mySubmittedName');
+      // 2. 清空抽签结果记录
+      const drawQuery = new AV.Query("DrawResult");
+      drawQuery.equalTo("room", ROOM_ID);
+      const drawRes = await drawQuery.find();
+      await AV.Object.destroyAll(drawRes);
 
-    log("🗑️ 房主已清空所有名单");
-    loadNames(); // 重新加载名单
+      // 3. 重置本地状态
+      mySubmittedName = null;
+      localStorage.removeItem('mySubmittedName');
+
+      // 4. 重置UI：清空本次抽签结果和公示区域
+      slots.innerHTML = "";
+      winnersDiv.innerHTML = "";
+
+      // 5. 重新加载数据，刷新页面展示
+      loadNames();
+      loadDrawResults();
+
+      // 6. 日志记录
+      log("🗑️ 房主已清空所有名单和历史抽签结果，系统已重置，可开启新轮抽签");
+    } catch (error) {
+      log(`❌ 清空失败：${error.message}`);
+      alert("清空失败，请重试！");
+    }
   });
 
   /************** 抽签动画 **************/
