@@ -239,7 +239,7 @@ function verifyHouseOwnerPassword() {
 }
 
 // ==================== 提交人名单管理（LeanCloud 版） ====================
-// 添加提交人
+// 添加提交人（已修复ACL：公共可读）
 async function addSubmitter() {
     const nameInput = document.getElementById('add-name');
     const name = nameInput.value.trim();
@@ -267,6 +267,11 @@ async function addSubmitter() {
         submitter.set('fileType', '');
         submitter.set('submitTime', '');
         
+        // 关键：设置ACL为公共可读（访客能查询到该数据）
+        const acl = new AV.ACL();
+        acl.setPublicReadAccess(true); // 所有用户可读取
+        submitter.setACL(acl); // 绑定ACL到提交人对象
+        
         await submitter.save();
         nameInput.value = '';
         await updateHouseOwnerDashboard(); // 刷新数据
@@ -275,7 +280,7 @@ async function addSubmitter() {
     }
 }
 
-// 导入提交人名单
+// 导入提交人名单（已修复ACL：批量添加的对象也带公共可读）
 async function importSubmitterList() {
     const fileInput = document.getElementById('import-list');
     const file = fileInput.files[0];
@@ -333,7 +338,7 @@ async function importSubmitterList() {
     }
 }
 
-// 处理导入的姓名列表
+// 处理导入的姓名列表（已修复ACL：批量对象添加公共可读）
 async function processImportedNames(names, fileInput) {
     if (names.length === 0) {
         alert('导入文件无有效姓名！');
@@ -349,7 +354,7 @@ async function processImportedNames(names, fileInput) {
         const existingSubmitters = await query.find();
         const existingNames = existingSubmitters.map(item => item.get('name'));
 
-        // 批量创建新提交人
+        // 批量创建新提交人（带公共可读ACL）
         const newSubmitters = names.filter(name => !existingNames.includes(name)).map(name => {
             const submitter = new Submitter();
             submitter.set('roomId', ROOM_ID);
@@ -359,6 +364,12 @@ async function processImportedNames(names, fileInput) {
             submitter.set('fileName', '');
             submitter.set('fileType', '');
             submitter.set('submitTime', '');
+            
+            // 关键：批量对象也添加公共可读ACL
+            const acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            submitter.setACL(acl);
+            
             return submitter;
         });
 
