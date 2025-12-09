@@ -12,8 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 自定义CSS（保持原有引用） -->
     <link rel="stylesheet" href="file-submit.css">
-    <!-- 自定义JS（保持原有引用，无需修改） -->
-    <script src="file-submit.js"></script>
     <!-- Tailwind 自定义配置 -->
     <script>
         tailwind.config = {
@@ -64,7 +62,7 @@
                     <!-- 房主入口 -->
                     <div class="border border-gray-200 rounded-lg p-6 hover:border-primary transition-all cursor-pointer" onclick="enterHouseOwnerMode()">
                         <div class="text-center">
-                            <i class="fa fa-user-circle-o text-5xl text-primary mb-4"></i>
+                            <<i class="fa fa-user-circle-o text-5xl text-primary mb-4"></</i>
                             <h3 class="text-xl font-semibold mb-2">房主模式</h3>
                             <p class="text-gray-500">管理提交人名单，控制系统状态，导出提交文件</p>
                         </div>
@@ -72,7 +70,7 @@
                     <!-- 访客入口 -->
                     <div class="border border-gray-200 rounded-lg p-6 hover:border-primary transition-all cursor-pointer" onclick="enterVisitorMode()">
                         <div class="text-center">
-                            <i class="fa fa-upload text-5xl text-primary mb-4"></i>
+                            <<i class="fa fa-upload text-5xl text-primary mb-4"></</i>
                             <h3 class="text-xl font-semibold mb-2">访客模式</h3>
                             <p class="text-gray-500">提交文件/图片，修改已提交内容</p>
                             <!-- 系统状态提示 -->
@@ -114,7 +112,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">房主管理中心</h2>
                     <button onclick="backToRoleSelection()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-sm">
-                        <i class="fa fa-arrow-left mr-1"></i> 返回首页
+                        <<i class="fa fa-arrow-left mr-1"></</i> 返回首页
                     </button>
                 </div>
 
@@ -127,20 +125,20 @@
                         </div>
                         <div class="flex gap-3">
                             <button id="btn-start-system" onclick="startSystem()" class="px-4 py-2 bg-success text-white rounded-lg hover:bg-success/90 transition-all hidden">
-                                <i class="fa fa-play mr-1"></i> 开始提交
+                                <<i class="fa fa-play mr-1"></</i> 开始提交
                             </button>
                             <button id="btn-pause-system" onclick="pauseSystem()" class="px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning/90 transition-all hidden">
-                                <i class="fa fa-pause mr-1"></i> 暂停提交
+                                <<i class="fa fa-pause mr-1"></</i> 暂停提交
                             </button>
                             <button id="btn-resume-system" onclick="resumeSystem()" class="px-4 py-2 bg-info text-white rounded-lg hover:bg-info/90 transition-all hidden">
-                                <i class="fa fa-play mr-1"></i> 恢复提交
+                                <<i class="fa fa-play mr-1"></</i> 恢复提交
                             </button>
                             <button id="btn-end-system" onclick="endSystem()" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger/90 transition-all hidden">
-                                <i class="fa fa-stop mr-1"></i> 结束提交
+                                <<i class="fa fa-stop mr-1"></</i> 结束提交
                             </button>
                             <!-- 重置系统按钮 -->
                             <button onclick="resetSystem()" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-all">
-                                <i class="fa fa-refresh mr-1"></i> 重置系统
+                                <<i class="fa fa-refresh mr-1"></</i> 重置系统
                             </button>
                         </div>
                     </div>
@@ -165,7 +163,7 @@
                 <!-- 导出按钮 -->
                 <div class="flex justify-end mb-8">
                     <button onclick="exportAllSubmittedFiles()" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all flex items-center">
-                        <i class="fa fa-download mr-1"></i> 导出所有提交文件
+                        <<i class="fa fa-download mr-1"></</i> 导出所有提交文件
                     </button>
                 </div>
 
@@ -175,10 +173,10 @@
                     <div class="flex flex-col md:flex-row gap-4 mb-4">
                         <input type="text" id="add-name" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg input-focus" placeholder="输入姓名添加">
                         <button onclick="addSubmitter()" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all">
-                            <i class="fa fa-plus mr-1"></i> 添加
+                            <<i class="fa fa-plus mr-1"></</i> 添加
                         </button>
                         <label class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all cursor-pointer flex items-center justify-center">
-                            <i class="fa fa-upload mr-1"></i> 导入名单
+                            <<i class="fa fa-upload mr-1"></</i> 导入名单
                             <input type="file" id="import-list" accept=".txt,.csv,.xlsx,.xls" class="hidden" onchange="importSubmitterList()">
                         </label>
                     </div>
@@ -254,11 +252,11 @@
 
                 <!-- 拖拽上传区域（修复upload-area缺失问题） -->
                 <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6 hover:border-primary transition-all cursor-pointer">
-                    <i class="fa fa-cloud-upload text-4xl text-gray-400 mb-2"></i>
+                    <<i class="fa fa-cloud-upload text-4xl text-gray-400 mb-2"></</i>
                     <p class="text-gray-500 mb-4">拖拽文件到此处上传，或点击选择文件</p>
                     <input type="file" id="file-upload" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden" onchange="handleFileSelect()">
                     <label for="file-upload" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all cursor-pointer">
-                        <i class="fa fa-file mr-1"></i> 选择文件
+                        <<i class="fa fa-file mr-1"></</i> 选择文件
                     </label>
                 </div>
 
@@ -288,5 +286,8 @@
             </div>
         </div>
     </div>
+
+    <!-- 把JS引入移到body最后（关键：等页面元素加载完成后再执行JS） -->
+    <script src="file-submit.js"></script>
 </body>
 </html>
