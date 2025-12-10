@@ -8,7 +8,7 @@ AV.init({
 // 2. 自定义房间 ID（确保与抽奖系统的 ROOM_ID 不同）
 const ROOM_ID = "file_submit_system_room_001";
 // 3. 房主默认密码
-const DEFAULT_OWNER_PASSWORD = "admin123";
+const DEFAULT_OWNER_PASSWORD = "953191";
 // ================================== 配置结束 ==================================
 
 // ==================== 全局变量 & 前置函数（解决 JSZip 加载问题）====================
