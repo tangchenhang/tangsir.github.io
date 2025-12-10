@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
   /************** 房主密码验证 **************/
   (function initOwnerAuth() {
     const pw = prompt("请输入房主口令（访客点取消即可使用）", "");
-    if (pw === "666888") {
+    if (pw === "953191") {
       isOwner = true;
       drawBtn.disabled = false;
       clearNamesBtn.disabled = false;
