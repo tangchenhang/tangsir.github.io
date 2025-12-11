@@ -14,15 +14,21 @@
         }
 
         :root {
-            --primary: #764ba2; /* 你指定的主色调 */
+            --primary: #764ba2; /* 主色调 */
             --primary-light: #8b62b8; /* 主色调浅版（hover用） */
             --primary-dark: #603a8c; /* 主色调深版（点击用） */
+            --test: #3a86ff; /* 测试中色调 */
+            --test-light: #5a9dff; /* 测试中浅版 */
+            --test-bg: rgba(58, 134, 255, 0.1); /* 测试中卡片背景 */
+            --test-border: rgba(58, 134, 255, 0.2); /* 测试中卡片边框 */
             --bg-gradient: linear-gradient(135deg, #1a1029 0%, #0f0a19 100%); /* 深色渐变背景 */
-            --card-bg: rgba(30, 20, 40, 0.6); /* 卡片半透明背景 */
-            --card-border: rgba(118, 75, 162, 0.2); /* 卡片边框色 */
+            --card-bg: rgba(30, 20, 40, 0.6); /* 已上线卡片背景 */
+            --card-border: rgba(118, 75, 162, 0.2); /* 已上线卡片边框 */
+            --dev-bg: #2d2638; /* 开发中卡片背景 */
+            --dev-border: rgba(138, 122, 160, 0.2); /* 开发中卡片边框 */
             --text-primary: #ffffff; /* 主文本色 */
-            --dev-bg: #2d2638; /* 开发中按钮背景 */
-            --dev-text: #8a7aa0; /* 开发中按钮文本色 */
+            --dev-text: #8a7aa0; /* 开发中文本色 */
+            --test-text: #3a86ff; /* 测试中文本色 */
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.2); /* 通用阴影 */
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 顺滑过渡 */
         }
@@ -103,11 +109,21 @@
             gap: 0.5rem;
         }
 
+        /* 不同板块标题的左侧竖线配色 */
+        .section-title.online::before {
+            background: var(--primary);
+        }
+        .section-title.testing::before {
+            background: var(--test);
+        }
+        .section-title.dev::before {
+            background: var(--dev-text);
+        }
+
         .section-title::before {
             content: "";
             width: 4px;
             height: 20px;
-            background: var(--primary);
             border-radius: 2px;
         }
 
@@ -120,8 +136,6 @@
 
         /* 通用按钮样式 */
         .btn-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
             border-radius: 12px;
             padding: 1.5rem;
             transition: var(--transition);
@@ -135,6 +149,8 @@
 
         /* 已上线按钮样式 */
         .btn-card.active {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
             box-shadow: var(--shadow);
         }
 
@@ -150,10 +166,29 @@
             background: rgba(118, 75, 162, 0.05);
         }
 
+        /* 测试中按钮样式 */
+        .btn-card.test {
+            background: var(--test-bg);
+            border: 1px solid var(--test-border);
+            box-shadow: 0 4px 20px rgba(58, 134, 255, 0.1);
+        }
+
+        .btn-card.test:hover {
+            transform: translateY(-4px);
+            background: rgba(58, 134, 255, 0.15);
+            border-color: var(--test-light);
+            box-shadow: 0 12px 32px rgba(58, 134, 255, 0.2);
+        }
+
+        .btn-card.test:active {
+            transform: translateY(-2px);
+            background: rgba(58, 134, 255, 0.08);
+        }
+
         /* 开发中按钮样式 */
         .btn-card.dev {
             background: var(--dev-bg);
-            border-color: rgba(138, 122, 160, 0.2);
+            border: 1px solid var(--dev-border);
             cursor: not-allowed;
             opacity: 0.8;
         }
@@ -163,11 +198,18 @@
             width: 40px;
             height: 40px;
             border-radius: 8px;
-            background: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 1rem;
+        }
+
+        .btn-card.active .btn-icon {
+            background: var(--primary);
+        }
+
+        .btn-card.test .btn-icon {
+            background: var(--test);
         }
 
         .btn-card.dev .btn-icon {
@@ -190,17 +232,27 @@
             color: var(--dev-text);
         }
 
-        /* 开发中徽章 */
-        .dev-badge {
+        /* 状态徽章通用样式 */
+        .badge {
             position: absolute;
             top: 1rem;
             right: 1rem;
             padding: 0.25rem 0.75rem;
-            background: rgba(138, 122, 160, 0.2);
-            color: var(--dev-text);
             font-size: 0.75rem;
             font-weight: 500;
             border-radius: 20px;
+        }
+
+        /* 测试中徽章 */
+        .badge.test {
+            background: rgba(58, 134, 255, 0.2);
+            color: var(--test);
+        }
+
+        /* 开发中徽章 */
+        .badge.dev {
+            background: rgba(138, 122, 160, 0.2);
+            color: var(--dev-text);
         }
 
         /* 链接样式重置 */
@@ -256,7 +308,7 @@
         <div class="sections">
             <!-- 已上线板块 -->
             <div class="section">
-                <h2 class="section-title">已上线工具</h2>
+                <h2 class="section-title online">已上线工具</h2>
                 <div class="btn-grid">
                     <!-- 随机抽取工具（已上线） -->
                     <div class="btn-card active">
@@ -269,9 +321,9 @@
                             <h3 class="btn-title">随机抽取工具</h3>
                         </a>
                     </div>
-                    <!-- 文件收集工具（新增 - 已上线） -->
+                    <!-- 文件收集工具（已上线） -->
                     <div class="btn-card active">
-                        <a href="file-submit.html" class="btn-link"> <!-- 替换为你的文件收集工具页面路径 -->
+                        <a href="file-submit.html" class="btn-link">
                             <div class="btn-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                     <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
@@ -283,13 +335,44 @@
                 </div>
             </div>
 
-            <!-- 开发中板块（减少一个，保留两个） -->
+            <!-- 测试中板块 -->
             <div class="section">
-                <h2 class="section-title">开发中工具</h2>
+                <h2 class="section-title testing">测试中功能</h2>
                 <div class="btn-grid">
-                    <!-- 工具2（开发中） -->
+                    <!-- 测试中工具1 -->
+                    <div class="btn-card test">
+                        <div class="badge test">测试中</div>
+                        <a href="test-tool1.html" class="btn-link">
+                            <div class="btn-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="btn-title">测试工具1</h3>
+                        </a>
+                    </div>
+                    <!-- 测试中工具2 -->
+                    <div class="btn-card test">
+                        <div class="badge test">测试中</div>
+                        <a href="test-tool2.html" class="btn-link">
+                            <div class="btn-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm-9.83-3.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.86-7.01L19.42 4h-.01l-1.1 2-2.76 5H8.53l-.13-.27L6.16 6l-.95-2-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.13 0-.25-.11-.25-.25z"/>
+                                </svg>
+                            </div>
+                            <h3 class="btn-title">测试工具2</h3>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 开发中板块 -->
+            <div class="section">
+                <h2 class="section-title dev">开发中工具</h2>
+                <div class="btn-grid">
+                    <!-- 开发中工具1 -->
                     <div class="btn-card dev">
-                        <div class="dev-badge">开发中</div>
+                        <div class="badge dev">开发中</div>
                         <div class="btn-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
@@ -298,9 +381,9 @@
                         <h3 class="btn-title">正在开发</h3>
                     </div>
 
-                    <!-- 工具3（开发中） -->
+                    <!-- 开发中工具2 -->
                     <div class="btn-card dev">
-                        <div class="dev-badge">开发中</div>
+                        <div class="badge dev">开发中</div>
                         <div class="btn-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
@@ -313,5 +396,4 @@
         </div>
     </div>
 </body>
-</html>
-
+</html>          
