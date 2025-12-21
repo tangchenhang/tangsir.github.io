@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投票管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            background-attachment: fixed;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e8f4f8;
+        }
+        #initTab {
+            text-align: center;
+            padding: 60px 30px;
+            background: linear-gradient(180deg, #f8fcff 0%, #ffffff 100%);
+            border-radius: 12px;
+        }
+        #initTab h2 {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 40px;
+            font-weight: 600;
+            position: relative;
+            display: inline-block;
+        }
+        #initTab h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #409eff, #67c23a);
+            border-radius: 3px;
+        }
+        #initTab .btn-group {
+            justify-content: center;
+            gap: 20px;
+        }
+        #initTab button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #409eff, #5cadff);
+            box-shadow: 0 4px 10px rgba(64, 158, 255, 0.3);
+        }
+        #initTab button:hover {
+            background: linear-gradient(90deg, #337ecc, #409eff);
+            transform: translateY(-2px);
+            transition: all 0.2s;
+        }
+
+        .tab {
+            display: none;
+        }
+        .tab.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-group {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #409eff;
+            color: white;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background-color: #337ecc;
+            transform: translateY(-1px);
+        }
+        button.danger {
+            background-color: #f56c6c;
+        }
+        button.danger:hover {
+            background-color: #e45656;
+        }
+        button.secondary {
+            background-color: #909399;
+        }
+        button.secondary:hover {
+            background-color: #73767a;
+        }
+        button.import-btn {
+            background-color: #67c23a;
+        }
+        button.import-btn:hover {
+            background-color: #52b32d;
+        }
+        button.end-btn {
+            background-color: #ff4d4f;
+        }
+        button.end-btn:hover {
+            background-color: #ff2b2b;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            margin: 8px 0;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+        }
+        .form-item {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        .list-box {
+            border: 1px solid #e8e8e8;
+            padding: 15px;
+            border-radius: 6px;
+            min-height: 80px;
+            margin: 10px 0;
+            background: #fafafa;
+        }
+        .status-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .status-lock {
+            background-color: #fdf2e9;
+            color: #e67700;
+        }
+        .status-unlock {
+            background-color: #f0f9ff;
+            color: #409eff;
+        }
+        .status-pause {
+            background-color: #fef0f0;
+            color: #f56c6c;
+        }
+        .status-normal {
+            background-color: #f0f9ff;
+            color: #67c23a;
+        }
+        .status-ended {
+            background-color: #fff1f0;
+            color: #ff4d4f;
+        }
+        .result-item {
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        h2, h3 {
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        h3 {
+            font-size: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .tip {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .import-box {
+            margin: 10px 0;
+            padding: 15px;
+            border: 2px dashed #e8e8e8;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .import-box:hover {
+            border-color: #409eff;
+            background: #f8fcff;
+        }
+        .import-box input {
+            display: none;
+        }
+        .import-text {
+            color: #666;
+            font-size: 14px;
+        }
+        .vote-count-setting {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .vote-count-setting input {
+            width: 80px;
+        }
+        /* 禁用状态样式 */
+        .disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+        }
+        .disabled:hover {
+            background-color: #409eff !important;
+            transform: none !important;
+        }
+
+        /* === 名单控制区按钮微调 === */
+#hostManageTab .form-item button {
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+/* 锁定名单：主操作 */
+#lockBtn {
+    background: linear-gradient(135deg, #409eff, #66b1ff);
+    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.25);
+}
+#lockBtn:hover {
+    background: linear-gradient(135deg, #337ecc, #409eff);
+}
+
+/* 一键清空名单：危险但克制 */
+button.danger {
+    background: linear-gradient(135deg, #ff7875, #ff4d4f);
+    box-shadow: 0 4px 10px rgba(255, 77, 79, 0.25);
+}
+button.danger:hover {
+    background: linear-gradient(135deg, #ff4d4f, #d9363e);
+}
+
+/* 状态标签：更像“提示信息”，不再像按钮 */
+.status-tag {
+    margin-left: auto;              /* 👉 自动推到最右侧 */
+    padding: 6px 14px;
+    border-radius: 999px;            /* 胶囊形 */
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* 未锁定状态 */
+.status-unlock {
+    background: #ecf5ff;
+    color: #409eff;
+    border: 1px solid #d9ecff;
+}
+
+/* 已锁定状态 */
+.status-lock {
+    background: #fff7e6;
+    color: #d48806;
+    border: 1px solid #ffe7ba;
+}
+
+#hostManageTab .form-item > div {
+    width: 100%;
+}
+
+/* 名单操作行：按钮和状态彻底分离 */
+#hostManageTab .form-item > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 两个按钮一个按钮组 */
+#lockBtn,
+#hostManageTab button.danger {
+    flex-shrink: 0;
+}
+
+/* 状态标签永远靠右，不盖按钮 */
+#listLockStatus {
+    margin-left: auto;
+    pointer-events: none;   /* 关键：不抢点击 */
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 1. 初始选择页 -->
+        <div id="initTab" class="tab active">
+            <h2>投票管理系统</h2>
+            <div class="btn-group">
+                <button onclick="switchTab('hostLoginTab')">房主登录</button>
+                <button onclick="switchTab('visitorLoginTab')">访客投票</button>
+            </div>
+        </div>
+
+        <!-- 2. 房主登录页 -->
+        <div id="hostLoginTab" class="tab">
+            <h2>房主登录</h2>
+            <div class="form-item">
+                <label>房主密码</label>
+                <input type="password" id="hostPwd" placeholder="请输入房主密码">
+            </div>
+            <div class="btn-group">
+                <button onclick="hostLogin()">登录</button>
+                <button class="secondary" onclick="switchTab('initTab')">返回</button>
+            </div>
+        </div>
+
+        <!-- 3. 房主管理页（新增修改权限+终止按钮） -->
+        <div id="hostManageTab" class="tab">
+            <h2>房主管理中心</h2>
+            
+            <!-- 投票名单管理 -->
+            <div class="form-item">
+                <h3>投票人名单管理</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="addVoterInput" placeholder="输入要添加的投票人姓名" style="flex: 1;">
+                    <button onclick="addVoter()">添加</button>
+                    
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    
+                   
+                    <button class="import-btn" onclick="document.getElementById('importFile').click()">导入名单</button>
+                </div>
+            
+                <div class="import-box" onclick="document.getElementById('importFile').click()">
+                    <input type="file" id="importFile" accept=".xlsx,.xls,.txt" onchange="importVoterList(event)">
+                    <div class="import-text">点击或拖拽文件到此处导入名单（支持Excel/Word/纯文本）</div>
+                    <div class="tip">提示：Excel/Word请确保姓名在第一列，每行一个姓名；纯文本每行一个姓名</div>
+                </div>
+                <label>当前投票人名单（每行一个姓名）：</label>
+                <textarea id="voterListText" rows="6" placeholder="例如：&#10;张三&#10;李四&#10;王五"></textarea>
+                <div style="display: flex; align-items: center; margin: 10px 0;">
+                    <button onclick="lockVoterList()" id="lockBtn">锁定名单</button>
+                    <button class="danger" onclick="clearVoterList()">一键清空名单</button>
+
+                    <span id="listLockStatus" class="status-tag status-unlock">名单未锁定</span>
+                </div>
+            </div>
+
+            <!-- 投票选项设置 -->
+            <div class="form-item">
+                <h3>投票选项设置</h3>
+                <label>投票选项（每行一个选项）：</label>
+                <textarea id="voteOptionsText" rows="4" placeholder="例如：&#10;选项A&#10;选项B&#10;选项C"></textarea>
+                <div class="vote-count-setting" style="margin: 10px 0;">
+                    <label style="margin: 0;">最多可投选项数：</label>
+                    <input type="number" id="voteMaxCount" min="1" value="1" placeholder="请输入数字">
+                    <button onclick="saveVoteCount()">保存数量</button>
+                    <div class="tip" style="flex: 1; margin-left: 10px;">设置为1则为单选，大于1则为多选（如设置2可投2个选项）</div>
+                </div>
+                <button onclick="saveVoteOptions()">保存选项</button>
+            </div>
+
+            <!-- 投票状态控制（新增修改权限+终止按钮） -->
+            <div class="form-item">
+                <h3>投票状态控制</h3>
+                <!-- 新增：修改权限开关 -->
+                <div style="margin: 10px 0;">
+                    <label>
+                        <input type="checkbox" id="allowEditCheck"> 允许访客修改已提交的投票结果
+                    </label>
+                    <div class="tip">取消勾选后，访客提交投票后无法再修改</div>
+                </div>
+                <!-- 暂停/恢复 + 终止按钮 -->
+                <div style="display: flex; align-items: center; margin: 10px 0; gap: 15px;">
+                    <button onclick="toggleVotePause()" id="pauseBtn">暂停投票</button>
+                    <button class="end-btn" onclick="toggleVoteEnd()" id="endBtn">终止投票</button>
+                    <span id="voteStatus" class="status-tag status-normal">投票中</span>
+                </div>
+                <button class="danger" onclick="resetVote()">重置所有投票数据</button>
+            </div>
+
+            <!-- 结果公开控制 -->
+            <div class="form-item">
+                <h3>结果公开设置</h3>
+                <div style="margin: 10px 0;">
+                    <label>
+                        <input type="checkbox" id="resultPublicCheck"> 公开投票总结果
+                    </label>
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>
+                        <input type="checkbox" id="detailPublicCheck"> 公开每个人的投票详情
+                    </label>
+                </div>
+                <button onclick="savePublicSetting()">保存设置</button>
+            </div>
+
+            <!-- 查看结果 -->
+            <div class="form-item">
+                <h3>投票结果（房主查看）</h3>
+                <button onclick="showHostResult()">查看完整结果</button>
+                <div id="hostResultBox" class="list-box"></div>
+            </div>
+
+            <div class="btn-group">
+                <button class="secondary" onclick="switchTab('initTab')">退出</button>
+            </div>
+        </div>
+
+        <!-- 4. 访客登录页 -->
+        <div id="visitorLoginTab" class="tab">
+            <h2>访客投票验证</h2>
+            <div class="form-item">
+                <label>请输入您的姓名</label>
+                <input type="text" id="visitorName" placeholder="输入姓名验证身份">
+            </div>
+            <div class="btn-group">
+                <button onclick="visitorVerify()">验证并进入投票</button>
+                <button class="secondary" onclick="switchTab('initTab')">返回</button>
+            </div>
+            <div id="visitorVerifyTip" style="color: red; margin-top: 10px;"></div>
+        </div>
+
+        <!-- 5. 访客投票页（适配修改权限+终止状态） -->
+        <div id="visitorVoteTab" class="tab">
+            <h2>投票界面</h2>
+            <div id="visitorNameTip" style="margin-bottom: 20px; font-weight: 500;"></div>
+            <div id="voteOptionsBox" class="form-item"></div>
+            <div class="btn-group">
+                <button onclick="submitVote()" id="submitVoteBtn">提交投票</button>
+                <button class="secondary" onclick="switchTab('visitorLoginTab')">返回</button>
+            </div>
+            <div id="voteSubmitTip" style="color: red; margin-top: 10px;"></div>
+        </div>
+
+        <!-- 6. 投票结果页 -->
+        <div id="resultTab" class="tab">
+            <h2>投票结果</h2>
+            <div id="publicResultBox" class="list-box"></div>
+            <div class="btn-group">
+                <button class="secondary" onclick="switchTab('initTab')">返回首页</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局状态管理（新增修改权限+终止状态）
+        const STORAGE_KEY = "vote_system_data";
+        let voteData = {
+            hostPwd: "953191",               // 房主默认密码
+            voterList: [],                   // 投票人名单
+            isListLocked: false,             // 名单是否锁定
+            voteOptions: [],                 // 投票选项
+            voteMaxCount: 1,                 // 最多可投选项数
+            allowVoteEdit: true,             // 新增：是否允许访客修改已投结果
+            isVotePaused: false,             // 是否暂停投票
+            isVoteEnded: false,              // 新增：是否终止投票（终止后无法投票/修改）
+            voteRecords: {},                 // 投票记录 {姓名: [选项1, 选项2] 或 选项}
+            isResultPublic: false,           // 是否公开总结果
+            isDetailPublic: false            // 是否公开详细记录
+        };
+
+        // 初始化
+        function initData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) voteData = JSON.parse(saved);
+            syncHostUI();
+        }
+
+        // 保存数据
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(voteData));
+        }
+
+        // 切换标签页
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById('visitorVerifyTip').textContent = '';
+            document.getElementById('voteSubmitTip').textContent = '';
+        }
+
+        // ---------------------- 名单导入功能 ----------------------
+        function importVoterList(event) {
+            if (voteData.isListLocked || voteData.isVoteEnded) {
+                alert('名单已锁定或投票已终止，无法导入！');
+                event.target.value = '';
+                return;
+            }
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    const voterList = jsonData
+                        .map(row => row[0]?.toString().trim())
+                        .filter(name => name && name !== 'undefined');
+                    if (voterList.length === 0) {
+                        alert('未从Excel中解析到有效姓名！');
+                        return;
+                    }
+                    voteData.voterList = voterList;
+                    document.getElementById('voterListText').value = voterList.join('\n');
+                    saveData();
+                    alert(`成功导入 ${voterList.length} 个投票人！`);
+                    event.target.value = '';
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (file.name.endsWith('.txt')) {
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    const voterList = text
+                        .split('\n')
+                        .map(name => name.trim())
+                        .filter(name => name);
+                    if (voterList.length === 0) {
+                        alert('未从文本文件中解析到有效姓名！');
+                        return;
+                    }
+                    voteData.voterList = voterList;
+                    document.getElementById('voterListText').value = voterList.join('\n');
+                    saveData();
+                    alert(`成功导入 ${voterList.length} 个投票人！`);
+                    event.target.value = '';
+                };
+                reader.readAsText(file, 'utf-8');
+            } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+                alert('Word文件暂不直接支持解析，请将姓名整理到Excel或纯文本文件后导入！');
+                event.target.value = '';
+            }
+        }
+
+        // ---------------------- 选票数量设置 ----------------------
+        function saveVoteCount() {
+            if (voteData.isVoteEnded) {
+                alert('投票已终止，无法修改选票数量！');
+                return;
+            }
+            const count = parseInt(document.getElementById('voteMaxCount').value);
+            if (isNaN(count) || count < 1) {
+                alert('请输入大于等于1的数字！');
+                return;
+            }
+            voteData.voteMaxCount = count;
+            saveData();
+            alert(`选票数量设置成功！最多可投 ${count} 个选项`);
+        }
+
+        // ---------------------- 房主功能 ----------------------
+        function hostLogin() {
+            const pwd = document.getElementById('hostPwd').value;
+            if (pwd === voteData.hostPwd) {
+                switchTab('hostManageTab');
+                syncHostUI();
+            } else {
+                alert('密码错误！');
+            }
+        }
+
+        // 同步房主界面状态（新增修改权限+终止状态）
+        function syncHostUI() {
+            // 同步名单
+            document.getElementById('voterListText').value = voteData.voterList.join('\n');
+            
+            // 同步名单锁定状态
+            const lockBtn = document.getElementById('lockBtn');
+            const lockStatus = document.getElementById('listLockStatus');
+            if (voteData.isListLocked) {
+                lockBtn.textContent = '解锁名单';
+                lockStatus.className = 'status-tag status-lock';
+                lockStatus.textContent = '名单已锁定';
+            } else {
+                lockBtn.textContent = '锁定名单';
+                lockStatus.className = 'status-tag status-unlock';
+                lockStatus.textContent = '名单未锁定';
+            }
+            
+            // 同步投票选项
+            document.getElementById('voteOptionsText').value = voteData.voteOptions.join('\n');
+            
+            // 同步选票数量
+            document.getElementById('voteMaxCount').value = voteData.voteMaxCount;
+            
+            // 同步修改权限开关
+            document.getElementById('allowEditCheck').checked = voteData.allowVoteEdit;
+            
+            // 同步投票状态（暂停/终止）
+            const pauseBtn = document.getElementById('pauseBtn');
+            const endBtn = document.getElementById('endBtn');
+            const voteStatus = document.getElementById('voteStatus');
+            
+            // 终止状态优先
+            if (voteData.isVoteEnded) {
+                pauseBtn.disabled = true;
+                pauseBtn.classList.add('disabled');
+                endBtn.textContent = '已终止投票（不可恢复）';
+                voteStatus.className = 'status-tag status-ended';
+                voteStatus.textContent = '投票已终止';
+            } else {
+                pauseBtn.disabled = false;
+                pauseBtn.classList.remove('disabled');
+                endBtn.textContent = '终止投票';
+                if (voteData.isVotePaused) {
+                    pauseBtn.textContent = '恢复投票';
+                    voteStatus.className = 'status-tag status-pause';
+                    voteStatus.textContent = '投票已暂停';
+                } else {
+                    pauseBtn.textContent = '暂停投票';
+                    voteStatus.className = 'status-tag status-normal';
+                    voteStatus.textContent = '投票中';
+                }
+            }
+            
+            // 同步公开设置
+            document.getElementById('resultPublicCheck').checked = voteData.isResultPublic;
+            document.getElementById('detailPublicCheck').checked = voteData.isDetailPublic;
+        }
+
+        // 添加投票人
+        function addVoter() {
+            if (voteData.isListLocked || voteData.isVoteEnded) {
+                alert('名单已锁定或投票已终止，无法添加！');
+                return;
+            }
+            const name = document.getElementById('addVoterInput').value.trim();
+            if (!name) {
+                alert('请输入姓名！');
+                return;
+            }
+            if (voteData.voterList.includes(name)) {
+                alert('该姓名已存在！');
+                return;
+            }
+            voteData.voterList.push(name);
+            document.getElementById('voterListText').value = voteData.voterList.join('\n');
+            document.getElementById('addVoterInput').value = '';
+            saveData();
+            alert('添加成功！');
+        }
+
+        
+
+        
+        // 锁定/解锁名单
+       function lockVoterList() {
+    if (voteData.isVoteEnded) {
+        alert('投票已终止，无法修改名单锁定状态！');
+        return;
+    }
+
+    // ✅ 在“锁定”之前，同步文本框内容
+    if (!voteData.isListLocked) {
+        const text = document.getElementById('voterListText').value.trim();
+        const newList = text
+            ? text.split('\n').map(n => n.trim()).filter(n => n)
+            : [];
+
+        voteData.voterList = newList;
+
+        // 同步删除已不存在的投票记录
+        Object.keys(voteData.voteRecords).forEach(name => {
+            if (!newList.includes(name)) {
+                delete voteData.voteRecords[name];
+            }
+        });
+    }
+
+    voteData.isListLocked = !voteData.isListLocked;
+    syncHostUI();
+    saveData();
+
+    alert(voteData.isListLocked ? '名单已锁定！' : '名单已解锁！');
+}
+
+
+function clearVoterList() {
+    if (voteData.isVoteEnded) {
+        alert('投票已终止，无法清空名单！');
+        return;
+    }
+
+    if (!confirm('确定要清空所有投票人名单吗？该操作会同时清空已提交的投票记录！')) {
+        return;
+    }
+
+    voteData.voterList = [];
+    voteData.voteRecords = {};
+    voteData.isListLocked = false;
+
+    document.getElementById('voterListText').value = '';
+    syncHostUI();
+    saveData();
+
+    alert('投票人名单已清空！');
+}
+
+        // 保存投票选项
+        function saveVoteOptions() {
+            if (voteData.isVoteEnded) {
+                alert('投票已终止，无法修改投票选项！');
+                return;
+            }
+            const text = document.getElementById('voteOptionsText').value.trim();
+            voteData.voteOptions = text ? text.split('\n').map(item => item.trim()).filter(item => item) : [];
+            saveData();
+            alert('投票选项保存成功！');
+        }
+
+        // 暂停/恢复投票
+        function toggleVotePause() {
+            if (voteData.isVoteEnded) {
+                alert('投票已终止，无法暂停/恢复！');
+                return;
+            }
+            voteData.isVotePaused = !voteData.isVotePaused;
+            syncHostUI();
+            saveData();
+            alert(voteData.isVotePaused ? '投票已暂停！' : '投票已恢复！');
+        }
+
+        // 新增：终止投票（不可逆）
+        function toggleVoteEnd() {
+            if (voteData.isVoteEnded) {
+                alert('投票已终止，无法恢复！');
+                return;
+            }
+            if (!confirm('确定要终止投票吗？终止后访客将无法投票/修改结果，此操作不可逆！')) {
+                return;
+            }
+            voteData.isVoteEnded = true;
+            voteData.isVotePaused = true; // 终止后自动暂停
+            syncHostUI();
+            saveData();
+            alert('投票已终止！访客无法再投票或修改结果');
+        }
+
+        // 重置投票数据
+        function resetVote() {
+            if (!confirm('确定要重置所有投票数据吗？此操作不可恢复！')) return;
+            voteData.voteRecords = {};
+            voteData.isListLocked = false;
+            voteData.isVotePaused = false;
+            voteData.isVoteEnded = false; // 重置时恢复终止状态
+            voteData.allowVoteEdit = true; // 重置时恢复修改权限
+            syncHostUI();
+            saveData();
+            alert('投票数据已重置！');
+        }
+
+        // 保存公开设置（含修改权限）
+        function savePublicSetting() {
+            voteData.isResultPublic = document.getElementById('resultPublicCheck').checked;
+            voteData.isDetailPublic = document.getElementById('detailPublicCheck').checked;
+            // 保存修改权限设置
+            voteData.allowVoteEdit = document.getElementById('allowEditCheck').checked;
+            saveData();
+            alert('公开设置及修改权限保存成功！');
+        }
+
+        // 房主查看结果
+        function showHostResult() {
+            const box = document.getElementById('hostResultBox');
+            if (voteData.voteOptions.length === 0) {
+                box.innerHTML = '暂无投票选项';
+                return;
+            }
+            const result = {};
+            voteData.voteOptions.forEach(opt => result[opt] = 0);
+            Object.values(voteData.voteRecords).forEach(selectedOpts => {
+                const opts = Array.isArray(selectedOpts) ? selectedOpts : [selectedOpts];
+                opts.forEach(opt => {
+                    if (result[opt] !== undefined) result[opt]++;
+                });
+            });
+            let html = '<div class="result-item"><strong>投票总结果：</strong></div>';
+            for (const [opt, count] of Object.entries(result)) {
+                html += `<div class="result-item">${opt}：${count} 票</div>`;
+            }
+            html += '<div class="result-item" style="margin-top: 10px;"><strong>详细投票记录：</strong></div>';
+            if (Object.keys(voteData.voteRecords).length === 0) {
+                html += '<div class="result-item">暂无投票记录</div>';
+            } else {
+                for (const [name, opts] of Object.entries(voteData.voteRecords)) {
+                    const optText = Array.isArray(opts) ? opts.join('、') : opts;
+                    html += `<div class="result-item">${name}：${optText}</div>`;
+                }
+            }
+            box.innerHTML = html;
+        }
+
+        // ---------------------- 访客功能（适配修改权限+终止状态） ----------------------
+        function visitorVerify() {
+            const name = document.getElementById('visitorName').value.trim();
+            const tip = document.getElementById('visitorVerifyTip');
+            
+            // 基础验证
+            if (!name) {
+                tip.textContent = '请输入姓名！';
+                return;
+            }
+            
+            // 终止状态验证
+            if (voteData.isVoteEnded) {
+                tip.textContent = '投票已终止，无法进入投票！';
+                return;
+            }
+            
+            // 名单锁定验证
+            if (!voteData.isListLocked) {
+                tip.textContent = '投票名单尚未锁定，暂无法投票！';
+                return;
+            }
+            
+            // 姓名验证
+            if (!voteData.voterList.includes(name)) {
+                tip.textContent = '您的姓名不在投票名单中！';
+                return;
+            }
+            
+            // 暂停验证
+            if (voteData.isVotePaused) {
+                tip.textContent = '投票已暂停，暂无法投票！';
+                return;
+            }
+            
+            // 选项验证
+            if (voteData.voteOptions.length === 0) {
+                tip.textContent = '暂无投票选项，无法投票！';
+                return;
+            }
+
+            // 验证通过，进入投票页
+            localStorage.setItem('current_visitor', name);
+            switchTab('visitorVoteTab');
+            renderVoteOptions(name);
+        }
+
+        // 渲染投票选项（适配修改权限）
+        function renderVoteOptions(name) {
+            const optionsBox = document.getElementById('voteOptionsBox');
+            const submitBtn = document.getElementById('submitVoteBtn');
+            const maxCount = voteData.voteMaxCount;
+            const hasVoted = !!voteData.voteRecords[name];
+            
+            // 如果不允许修改且已投票，禁用投票选项和提交按钮
+            if (hasVoted && !voteData.allowVoteEdit) {
+                const votedOpts = voteData.voteRecords[name];
+                const optText = Array.isArray(votedOpts) ? votedOpts.join('、') : votedOpts;
+                optionsBox.innerHTML = `<div style="color: #67c23a; font-size: 16px;">您已提交投票：${optText}</div>
+                                       <div class="tip">当前设置不允许修改投票结果</div>`;
+                submitBtn.disabled = true;
+                submitBtn.classList.add('disabled');
+                return;
+            }
+
+            // 正常渲染投票选项
+            let html = `<label>请选择您的投票选项（最多可选 ${maxCount} 个）：</label>`;
+            const selectedOpts = voteData.voteRecords[name] || [];
+            const selectedArr = Array.isArray(selectedOpts) ? selectedOpts : [selectedOpts];
+
+            voteData.voteOptions.forEach((opt, index) => {
+                const isChecked = selectedArr.includes(opt);
+                const inputType = maxCount === 1 ? 'radio' : 'checkbox';
+                html += `
+                <div style="margin: 8px 0;">
+                    <label>
+                        <input type="${inputType}" name="${inputType === 'radio' ? 'voteOption' : 'voteOptionMulti'}" 
+                               value="${opt}" ${isChecked ? 'checked' : ''} 
+                               onchange="checkSelectCount()">
+                        ${opt}
+                    </label>
+                </div>
+                `;
+            });
+            optionsBox.innerHTML = html;
+            document.getElementById('visitorNameTip').textContent = `当前投票人：${name}`;
+            
+            // 已投票提示
+            if (hasVoted) {
+                const optText = selectedArr.join('、');
+                document.getElementById('voteSubmitTip').textContent = `您已投票：${optText}（可重新提交修改）`;
+                document.getElementById('voteSubmitTip').style.color = '#67c23a';
+            }
+            
+            // 启用提交按钮
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('disabled');
+        }
+
+        // 检查多选数量
+        function checkSelectCount() {
+            const maxCount = voteData.voteMaxCount;
+            if (maxCount === 1) return;
+            
+            const checkedBoxes = document.querySelectorAll('input[name="voteOptionMulti"]:checked');
+            const tip = document.getElementById('voteSubmitTip');
+            
+            if (checkedBoxes.length > maxCount) {
+                checkedBoxes[checkedBoxes.length - 1].checked = false;
+                tip.textContent = `最多只能选择 ${maxCount} 个选项！`;
+                tip.style.color = 'red';
+            } else {
+                tip.textContent = '';
+            }
+        }
+
+        // 访客提交投票（适配修改权限+终止状态）
+        function submitVote() {
+            const name = localStorage.getItem('current_visitor');
+            const tip = document.getElementById('voteSubmitTip');
+            
+            // 身份验证
+            if (!name) {
+                tip.textContent = '身份验证失效，请重新验证！';
+                return;
+            }
+            
+            // 终止状态验证
+            if (voteData.isVoteEnded) {
+                tip.textContent = '投票已终止，无法提交！';
+                return;
+            }
+            
+            // 暂停状态验证
+            if (voteData.isVotePaused) {
+                tip.textContent = '投票已暂停，无法提交！';
+                return;
+            }
+            
+            // 不允许修改且已投票
+            if (voteData.voteRecords[name] && !voteData.allowVoteEdit) {
+                const optText = Array.isArray(voteData.voteRecords[name]) ? voteData.voteRecords[name].join('、') : voteData.voteRecords[name];
+                tip.textContent = `您已投票：${optText}，当前设置不允许修改！`;
+                tip.style.color = 'red';
+                return;
+            }
+
+            // 获取选中的选项
+            let selectedOpts = [];
+            if (voteData.voteMaxCount === 1) {
+                const selected = document.querySelector('input[name="voteOption"]:checked');
+                if (!selected) {
+                    tip.textContent = '请选择投票选项！';
+                    return;
+                }
+                selectedOpts = [selected.value];
+            } else {
+                const checkedBoxes = document.querySelectorAll('input[name="voteOptionMulti"]:checked');
+                if (checkedBoxes.length === 0) {
+                    tip.textContent = '请至少选择一个选项！';
+                    return;
+                }
+                selectedOpts = Array.from(checkedBoxes).map(box => box.value);
+            }
+
+            // 保存投票记录
+            voteData.voteRecords[name] = voteData.voteMaxCount === 1 ? selectedOpts[0] : selectedOpts;
+            saveData();
+            
+            // 提示成功
+            const optText = selectedOpts.join('、');
+            tip.textContent = `投票成功！您选择的是：${optText}`;
+            tip.style.color = '#67c23a';
+            
+            // 如果不允许修改，禁用提交按钮
+            if (!voteData.allowVoteEdit) {
+                document.getElementById('submitVoteBtn').disabled = true;
+                document.getElementById('submitVoteBtn').classList.add('disabled');
+            }
+            
+            // 跳转到结果页
+            setTimeout(() => {
+                showVisitorResult();
+                switchTab('resultTab');
+            }, 1500);
+        }
+
+        // 访客查看结果
+        function showVisitorResult() {
+            const box = document.getElementById('publicResultBox');
+            let html = '';
+            if (voteData.isResultPublic) {
+                const result = {};
+                voteData.voteOptions.forEach(opt => result[opt] = 0);
+                Object.values(voteData.voteRecords).forEach(selectedOpts => {
+                    const opts = Array.isArray(selectedOpts) ? selectedOpts : [selectedOpts];
+                    opts.forEach(opt => {
+                        if (result[opt] !== undefined) result[opt]++;
+                    });
+                });
+                html += '<div class="result-item"><strong>投票总结果：</strong></div>';
+                for (const [opt, count] of Object.entries(result)) {
+                    html += `<div class="result-item">${opt}：${count} 票</div>`;
+                }
+            } else {
+                html += '<div class="result-item">投票结果暂未公开</div>';
+            }
+            if (voteData.isDetailPublic) {
+                html += '<div class="result-item" style="margin-top: 10px;"><strong>详细投票记录：</strong></div>';
+                if (Object.keys(voteData.voteRecords).length === 0) {
+                    html += '<div class="result-item">暂无投票记录</div>';
+                } else {
+                    for (const [name, opts] of Object.entries(voteData.voteRecords)) {
+                        const optText = Array.isArray(opts) ? opts.join('、') : opts;
+                        html += `<div class="result-item">${name}：${optText}</div>`;
+                    }
+                }
+            } else if (voteData.isResultPublic) {
+                html += '<div class="result-item" style="margin-top: 10px; color: #999;">详细投票记录暂未公开</div>';
+            }
+            box.innerHTML = html;
+        }
+
+        // 页面加载初始化
+        window.onload = initData;
+    </script>
+</body>
+</html>
