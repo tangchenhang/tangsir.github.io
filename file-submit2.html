@@ -629,6 +629,123 @@
             }
         }
 
+        /* ======== 手机端深度优化（房主界面重点） ======== */
+@media (max-width: 768px) {
+
+    /* 整体背景改为 App 风格 */
+    body {
+        background: #f5f6fa;
+        padding: 0;
+    }
+
+    /* 顶部不要太高 */
+    .header h1 {
+        font-size: 1.1rem;
+    }
+
+    /* ===== 统计卡片：从“大卡”变“信息条” ===== */
+    .stats-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .stat-card {
+        padding: 12px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+
+    .stat-value {
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        margin-top: 0;
+        color: #666;
+    }
+
+    /* ===== 文件数量限制那一行 ===== */
+    .control-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .control-item label {
+        width: 100%;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 4px;
+    }
+
+    .control-item input {
+        width: 80px;
+        padding: 8px;
+    }
+
+    .control-item .btn {
+        flex: 1;
+        height: 38px;
+        font-size: 14px;
+    }
+
+    /* ===== 启动 / 暂停 / 结束按钮 ===== */
+    .control-panel .btn {
+        height: 42px;
+        font-size: 15px;
+    }
+
+    /* ===== 提交人列表：卡片化 ===== */
+    .list-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .item-status {
+        align-self: flex-start;
+    }
+
+    .item-actions {
+        width: 100%;
+        display: flex;
+        gap: 6px;
+    }
+
+    .item-actions .btn {
+        flex: 1;
+        font-size: 12px;
+        padding: 8px 0;
+    }
+
+    /* ===== Tab 按钮不要太挤 ===== */
+    .host-tabs {
+        gap: 5px;
+    }
+
+    .tab-btn {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+
+    /* ===== 空状态别太大 ===== */
+    .empty-state {
+        padding: 25px 10px;
+    }
+
+    .empty-state-icon {
+        font-size: 2.2rem;
+    }
+}
+
+
         .hidden {
             display: none !important;
         }
