@@ -1510,7 +1510,8 @@ submitters.sort((a, b) => {
       onclick="deleteUserSubmissions('${name}')">🗑 文件</button>
 
     <button class="btn btn-danger btn-small"
-      onclick="deleteSubmitter('${submitter.id}')">❌ 人员</button>
+  onclick="deleteSubmitter('${submitter.id}', '${name}')">❌ 人员</button>
+
   </div>
 `;
 
@@ -1719,30 +1720,34 @@ submitters.sort((a, b) => {
             }
         }
 
-        async function deleteSubmitter(id) {
-            if (!confirm('确定要删除该提交人吗？')) return;
+       async function deleteSubmitter(id, name) {
+    if (!confirm(`确定要删除 ${name} 吗？`)) return;
 
-            try {
-                const submitter = AV.Object.createWithoutData('Submitters', id);
-                await submitter.destroy();
+    try {
+        // 1️⃣ 删除提交人
+        const submitter = AV.Object.createWithoutData('Submitters', id);
+        await submitter.destroy();
 
-                // 同时删除其所有提交
-                const query = new AV.Query('Submissions');
-                query.equalTo('submitter', submitter.get('name'));
-                const submissions = await query.find();
+        // 2️⃣ 删除该人的所有文件
+        const query = new AV.Query('Submissions');
+        query.equalTo('submitter', name);
+        query.limit(1000);
+        const submissions = await query.find();
 
-                for (const sub of submissions) {
-                    await sub.destroy();
-                }
-
-                showNotification('删除成功！', 'success');
-                loadSubmitters();
-                loadFiles();
-                updateStats();
-            } catch (error) {
-                showNotification('删除失败：' + error.message, 'error');
-            }
+        for (const sub of submissions) {
+            const file = sub.get('file');
+            if (file) await file.destroy();
+            await sub.destroy();
         }
+
+        showNotification(`已删除 ${name} 及其所有提交`, 'success');
+        loadSubmitters();
+        loadFiles();
+        updateStats();
+    } catch (error) {
+        showNotification('删除失败：' + error.message, 'error');
+    }
+}
 
         function showImportModal() {
             document.getElementById('importModal').classList.add('active');
@@ -2262,3 +2267,4 @@ async function deleteUserSubmissions(userName) {
     </script>
 </body>
 </html>
+
