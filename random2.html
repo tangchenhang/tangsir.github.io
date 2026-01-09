@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能抽签系统</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --accent-color: #ff6b6b;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--secondary-color);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .content {
+            padding: 25px;
+            min-height: 500px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .participant-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 10px;
+            background: #f8f9fa;
+        }
+
+        .participant-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .participant-item.mandatory-winner {
+            border-left-color: var(--success-color);
+        }
+
+        .participant-item.mandatory-loser {
+            border-left-color: var(--danger-color);
+        }
+
+        .participant-item.winner {
+            background-color: #d4edda;
+            border-left-color: var(--success-color);
+        }
+
+        .participant-item.loser {
+            background-color: #f8d7da;
+            border-left-color: var(--danger-color);
+        }
+
+        .participant-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .participant-actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-ready {
+            background: #e2e6ea;
+            color: var(--dark-color);
+        }
+
+        .status-running {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-paused {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .notification {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .notification.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .notification.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .notification.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .toggle-group label {
+            margin-bottom: 0;
+            margin-right: 10px;
+            font-weight: normal;
+        }
+
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .winner-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: white;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .winner-display h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .winner-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .winner-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+
+        .password-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .password-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-state p {
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 智能抽签系统</h1>
+            <p>基于LeanCloud的公平透明抽签平台</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-view="host-login">房主登录</button>
+            <button class="tab" data-view="host-panel" disabled>房主面板</button>
+            <button class="tab" data-view="guest">访客入口</button>
+        </div>
+
+        <div class="content">
+            <!-- 房主登录视图 -->
+            <div id="host-login" class="view active">
+                <div class="password-container">
+                    <h2>房主登录</h2>
+                    <div class="form-group">
+                        <label for="host-password">输入房主密码</label>
+                        <input type="password" id="host-password" placeholder="请输入密码" autocomplete="off">
+                    </div>
+                    <button id="login-btn" class="btn btn-primary" style="width: 100%;">登录</button>
+                    <div id="login-error" class="notification error" style="margin-top: 15px; display: none;"></div>
+                    <p style="margin-top: 20px; text-align: center; font-size: 14px; color: #6c757d;">
+                        默认密码: admin123<br>
+                        (首次登录后可修改)
+                    </p>
+                </div>
+            </div>
+
+            <!-- 房主面板视图 -->
+            <div id="host-panel" class="view">
+                <div id="host-notification" class="notification info" style="display: none;"></div>
+
+                <div class="grid-2">
+                    <div>
+                        <!-- 抽签设置 -->
+                        <div class="card">
+                            <div class="card-title">抽签设置</div>
+                            <div class="form-group">
+                                <label for="winners-count">中签人数</label>
+                                <input type="number" id="winners-count" min="1" value="3">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="mandatory-winners">必定中签名单 (用逗号分隔)</label>
+                                <textarea id="mandatory-winners" rows="2" placeholder="例如: 张三,李四"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="mandatory-losers">必定不中签名单 (用逗号分隔)</label>
+                                <textarea id="mandatory-losers" rows="2" placeholder="例如: 王五,赵六"></textarea>
+                            </div>
+
+                            <div class="toggle-group">
+                                <label>允许访客修改/删除:</label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="allow-modify" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="toggle-group">
+                                <label>公开抽签结果:</label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="public-results" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="toggle-group">
+                                <label>所有人可自由进入:</label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="free-entry" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div id="allowed-names-container" style="display: none;">
+                                <div class="form-group">
+                                    <label for="allowed-names">允许进入的名单 (用逗号分隔)</label>
+                                    <textarea id="allowed-names" rows="3" placeholder="例如: 张三,李四,王五"></textarea>
+                                </div>
+                                <button id="import-names" class="btn btn-outline">导入名单</button>
+                                <input type="file" id="file-input" accept=".txt,.csv" style="display: none;">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="new-password">修改房主密码</label>
+                                <input type="password" id="new-password" placeholder="留空则不修改">
+                                <button id="change-password" class="btn btn-outline" style="margin-top: 10px;">修改密码</button>
+                            </div>
+
+                            <button id="save-settings" class="btn btn-primary">保存设置</button>
+                        </div>
+
+                        <!-- 抽签控制 -->
+                        <div class="card">
+                            <div class="card-title">抽签控制</div>
+                            <div>
+                                <button id="start-lottery" class="btn btn-success">开始抽签</button>
+                                <button id="pause-lottery" class="btn btn-outline">暂停</button>
+                                <button id="reset-lottery" class="btn btn-danger">重置</button>
+                            </div>
+                            <div id="lottery-status" style="margin-top: 10px;">
+                                状态: <span class="status-badge status-ready">准备就绪</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <!-- 抽签池管理 -->
+                        <div class="card">
+                            <div class="card-title">抽签池管理</div>
+                            <div class="form-group">
+                                <label for="manual-add">手动添加参与者</label>
+                                <input type="text" id="manual-add" placeholder="输入名字">
+                                <button id="add-participant" class="btn btn-primary" style="margin-top: 10px;">添加</button>
+                            </div>
+
+                            <div class="form-group">
+                                <label>批量导入参与者</label>
+                                <button id="import-participants" class="btn btn-outline">导入名单</button>
+                                <input type="file" id="participants-file" accept=".txt,.csv" style="display: none;">
+                            </div>
+
+                            <div style="margin: 15px 0;">
+                                <button id="clear-all" class="btn btn-danger">一键清空所有</button>
+                            </div>
+
+                            <div id="participants-list" class="participant-list">
+                                <div class="empty-state">
+                                    <p>抽签池为空</p>
+                                    <p>请添加参与者或导入名单</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 抽签结果 -->
+                        <div class="card">
+                            <div class="card-title">抽签结果</div>
+                            <div id="winner-display" class="winner-display">
+                                <h2>🎉 中签名单 🎉</h2>
+                                <div id="winner-list" class="winner-list"></div>
+                                <button id="export-results" class="btn btn-outline" style="margin-top: 20px; background: white; color: #333;">导出结果</button>
+                            </div>
+                            <div id="no-results" class="empty-state">
+                                <p>抽签尚未开始或已完成</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 访客视图 -->
+            <div id="guest" class="view">
+                <div id="guest-notification" class="notification info" style="display: none;"></div>
+
+                <div class="card">
+                    <div class="card-title">访客入口</div>
+                    <div id="guest-access-check">
+                        <div class="form-group">
+                            <label for="guest-name">您的姓名</label>
+                            <input type="text" id="guest-name" placeholder="请输入您的姓名">
+                        </div>
+                        <button id="enter-lottery" class="btn btn-primary">进入抽签池</button>
+                    </div>
+
+                    <div id="guest-management" style="display: none;">
+                        <div class="notification success">
+                            您已成功进入抽签池！
+                        </div>
+                        <div class="form-group">
+                            <label for="guest-edit-name">修改您的姓名</label>
+                            <input type="text" id="guest-edit-name" placeholder="输入新姓名">
+                        </div>
+                        <button id="update-name" class="btn btn-outline">更新姓名</button>
+                        <button id="remove-self" class="btn btn-danger">从抽签池移除</button>
+                    </div>
+                </div>
+
+                <div class="card" id="guest-results-card" style="display: none;">
+                    <div class="card-title">抽签结果</div>
+                    <div id="guest-winner-display" class="winner-display" style="display: block;">
+                        <h2>🎉 中签名单 🎉</h2>
+                        <div id="guest-winner-list" class="winner-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LeanCloud SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.2/dist/av-min.js"></script>
+
+    <script>
+        // LeanCloud 配置 - 请替换为您的实际信息
+        const LEAN_CONFIG = {
+            appId: 'awjrq2pnF6yDBX2QT7Sq1dHQ-gzGzoHsz',      // 替换为您的LeanCloud App ID
+            appKey: 'WY6uq9q4hPthkwKX5JIHrlYk',    // 替换为您的LeanCloud App Key
+            serverURL: 'https://awjrq2pn.lc-cn-n1-shared.com' // 替换为您的LeanCloud Server URL
+        };
+        let currentRoomId = localStorage.getItem('currentRoomId') || null;
+        // 默认房间（测试用），实际可以让房主输入或生成
+        if (!currentRoomId) {
+            currentRoomId = prompt('请输入或创建房间号（6位数字或字母）', '888888');
+            if (currentRoomId) localStorage.setItem('currentRoomId', currentRoomId);
+        }
+
+        // 初始化LeanCloud
+        if (LEAN_CONFIG.appId !== 'YOUR_APP_ID') {
+            AV.init({
+                appId: LEAN_CONFIG.appId,
+                appKey: LEAN_CONFIG.appKey,
+                serverURL: LEAN_CONFIG.serverURL
+            });
+        }
+
+        // 全局状态
+        const state = {
+            currentView: 'host-login',
+            isLoggedIn: false,
+            hostPassword: 'admin123', // 默认密码，实际应用中应存储在LeanCloud
+            settings: {
+                winnersCount: 3,
+                mandatoryWinners: [],
+                mandatoryLosers: [],
+                allowModify: true,
+                publicResults: true,
+                freeEntry: true,
+                allowedNames: []
+            },
+            participants: [],
+            lotteryStatus: 'ready', // ready, running, paused, completed
+            winners: []
+        };
+
+        // DOM 元素
+        const elements = {
+            tabs: document.querySelectorAll('.tab'),
+            views: document.querySelectorAll('.view'),
+            hostPassword: document.getElementById('host-password'),
+            loginBtn: document.getElementById('login-btn'),
+            loginError: document.getElementById('login-error'),
+            hostNotification: document.getElementById('host-notification'),
+            winnersCount: document.getElementById('winners-count'),
+            mandatoryWinners: document.getElementById('mandatory-winners'),
+            mandatoryLosers: document.getElementById('mandatory-losers'),
+            allowModify: document.getElementById('allow-modify'),
+            publicResults: document.getElementById('public-results'),
+            freeEntry: document.getElementById('free-entry'),
+            allowedNamesContainer: document.getElementById('allowed-names-container'),
+            allowedNames: document.getElementById('allowed-names'),
+            importNames: document.getElementById('import-names'),
+            fileInput: document.getElementById('file-input'),
+            newPassword: document.getElementById('new-password'),
+            changePassword: document.getElementById('change-password'),
+            saveSettings: document.getElementById('save-settings'),
+            startLottery: document.getElementById('start-lottery'),
+            pauseLottery: document.getElementById('pause-lottery'),
+            resetLottery: document.getElementById('reset-lottery'),
+            lotteryStatus: document.getElementById('lottery-status'),
+            manualAdd: document.getElementById('manual-add'),
+            addParticipant: document.getElementById('add-participant'),
+            importParticipants: document.getElementById('import-participants'),
+            participantsFile: document.getElementById('participants-file'),
+            clearAll: document.getElementById('clear-all'),
+            participantsList: document.getElementById('participants-list'),
+            winnerDisplay: document.getElementById('winner-display'),
+            winnerList: document.getElementById('winner-list'),
+            noResults: document.getElementById('no-results'),
+            exportResults: document.getElementById('export-results'),
+            guestNotification: document.getElementById('guest-notification'),
+            guestName: document.getElementById('guest-name'),
+            enterLottery: document.getElementById('enter-lottery'),
+            guestManagement: document.getElementById('guest-management'),
+            guestEditName: document.getElementById('guest-edit-name'),
+            updateName: document.getElementById('update-name'),
+            removeSelf: document.getElementById('remove-self'),
+            guestResultsCard: document.getElementById('guest-results-card'),
+            guestWinnerDisplay: document.getElementById('guest-winner-display'),
+            guestWinnerList: document.getElementById('guest-winner-list')
+        };
+
+        // 工具函数
+        function showNotification(element, message, type = 'info') {
+            element.textContent = message;
+            element.className = `notification ${type}`;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateLotteryStatusUI() {
+            const statusMap = {
+                'ready': '准备就绪',
+                'running': '进行中',
+                'paused': '已暂停',
+                'completed': '已完成'
+            };
+
+            const badgeClass = {
+                'ready': 'status-ready',
+                'running': 'status-running',
+                'paused': 'status-paused',
+                'completed': 'status-completed'
+            };
+
+            elements.lotteryStatus.innerHTML = `状态: <span class="status-badge ${badgeClass[state.lotteryStatus]}">${statusMap[state.lotteryStatus]}</span>`;
+        }
+
+        function renderParticipants() {
+            if (state.participants.length === 0) {
+                elements.participantsList.innerHTML = `
+                    <div class="empty-state">
+                        <p>抽签池为空</p>
+                        <p>请添加参与者或导入名单</p>
+                    </div>
+                `;
+                return;
+            }
+
+            elements.participantsList.innerHTML = state.participants.map(p => {
+                let classes = ['participant-item'];
+
+                if (state.settings.mandatoryWinners.includes(p.name)) classes.push('mandatory-winner');
+                if (state.settings.mandatoryLosers.includes(p.name)) classes.push('mandatory-loser');
+
+                if (state.winners.includes(p.name)) {
+                    classes.push('winner');
+                } else if (state.lotteryStatus === 'completed' && state.settings.mandatoryLosers.includes(p.name)) {
+                    classes.push('loser');
+                }
+
+                return `
+                    <div class="${classes.join(' ')}" data-name="${p.name}">
+                        <span>${p.name} ${p.isWinner ? '🎉' : ''} ${p.isLoser ? '❌' : ''}</span>
+                        <div class="participant-actions">
+                            ${state.settings.allowModify ? `<button class="btn btn-outline edit-participant" data-name="${p.name}">修改</button>` : ''}
+                            <button class="btn btn-danger remove-participant" data-name="${p.name}">删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 添加事件监听
+            document.querySelectorAll('.remove-participant').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const name = e.target.dataset.name;
+                    removeParticipant(name);
+                });
+            });
+
+            document.querySelectorAll('.edit-participant').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const name = e.target.dataset.name;
+                    const newName = prompt('输入新姓名:', name);
+                    if (newName && newName !== name) {
+                        updateParticipantName(name, newName);
+                    }
+                });
+            });
+        }
+
+        function renderWinners() {
+            if (state.winners.length === 0) {
+                elements.winnerDisplay.style.display = 'none';
+                elements.noResults.style.display = 'block';
+                return;
+            }
+
+            elements.winnerDisplay.style.display = 'block';
+            elements.noResults.style.display = 'none';
+
+            elements.winnerList.innerHTML = state.winners.map(name =>
+                `<div class="winner-item">${name}</div>`
+            ).join('');
+        }
+
+        function renderGuestResults() {
+            if (state.winners.length === 0 || !state.settings.publicResults) {
+                elements.guestResultsCard.style.display = 'none';
+                return;
+            }
+
+            elements.guestResultsCard.style.display = 'block';
+            elements.guestWinnerList.innerHTML = state.winners.map(name =>
+                `<div class="winner-item">${name}</div>`
+            ).join('');
+        }
+
+        // LeanCloud 数据操作函数
+        function saveSettingsToLeanCloud() {
+            const HostSettings = AV.Object.extend('HostSettings');
+            const query = new AV.Query('HostSettings');
+            query.equalTo('roomId', currentRoomId);
+
+            return query.first().then(obj => {
+                if (!obj) obj = new HostSettings();
+                obj.set('roomId', currentRoomId);
+
+                Object.keys(state.settings).forEach(key => {
+                    obj.set(key, state.settings[key]);
+                });
+
+                obj.set('password', state.hostPassword);
+                return obj.save();
+            });
+        }
+
+        function clearAllFromLeanCloud() {
+            const query = new AV.Query('LotteryPool');
+            query.equalTo('isDeleted', false);
+            query.equalTo('roomId', currentRoomId);
+            return query.find().then(results => {
+                return Promise.all(results.map(obj => {
+                    obj.set('isDeleted', true);
+                    return obj.save();
+                }));
+            });
+        }
+
+        function loadSettingsFromLeanCloud() {
+            const query = new AV.Query('HostSettings');
+            query.equalTo('roomId', currentRoomId);
+
+            return query.first().then(obj => {
+                if (!obj) return;
+
+                state.settings.winnersCount = obj.get('winnersCount') ?? 3;
+                state.settings.mandatoryWinners = obj.get('mandatoryWinners') || [];
+                state.settings.mandatoryLosers = obj.get('mandatoryLosers') || [];
+                state.settings.allowModify = obj.get('allowModify') ?? true;
+                state.settings.publicResults = obj.get('publicResults') ?? true;
+                state.settings.freeEntry = obj.get('freeEntry') ?? true;
+                state.settings.allowedNames = obj.get('allowedNames') || [];
+
+                state.hostPassword = obj.get('password') || state.hostPassword;
+            });
+        }
+
+        function saveParticipantToLeanCloud(participant) {
+            const LotteryPool = AV.Object.extend('LotteryPool');
+            const obj = new LotteryPool();
+
+            obj.set('name', participant.name);
+            obj.set('isWinner', false);
+            obj.set('isMandatoryWinner', false);
+            obj.set('isMandatoryLoser', false);
+            obj.set('isDeleted', false);
+            obj.set('roomId', currentRoomId);
+            obj.set('sessionId', 'default'); // 可选
+
+            return obj.save();
+        }
+
+        function updateParticipantInLeanCloud(name, updates) {
+            const query = new AV.Query('LotteryPool');
+            query.equalTo('name', name);
+            query.equalTo('roomId', currentRoomId);
+
+            return query.first().then(obj => {
+                if (!obj) return;
+                Object.keys(updates).forEach(key => {
+                    obj.set(key, updates[key]);
+                });
+                return obj.save();
+            });
+        }
+
+        function removeParticipantFromLeanCloud(name) {
+            const query = new AV.Query('LotteryPool');
+            query.equalTo('name', name);
+            query.equalTo('roomId', currentRoomId);
+
+            return query.first().then(obj => {
+                if (!obj) return;
+                obj.set('isDeleted', true);
+                return obj.save();
+            });
+        }
+
+        function loadWinnersFromLeanCloud() {
+            const query = new AV.Query('LotteryResult');
+            query.equalTo('roomId', currentRoomId);
+            query.descending('createdAt');
+            query.limit(1);
+
+            return query.first().then(obj => {
+                if (!obj) return;
+                state.winners = obj.get('winners') || [];
+            });
+        }
+
+        function loadParticipantsFromLeanCloud() {
+            const query = new AV.Query('LotteryPool');
+            query.equalTo('isDeleted', false);
+            query.equalTo('roomId', currentRoomId);
+
+            return query.find().then(results => {
+                state.participants = results.map(r => ({
+                    name: r.get('name'),
+                    isWinner: r.get('isWinner'),
+                    isLoser: r.get('isMandatoryLoser')
+                }));
+                renderParticipants();
+            });
+        }
+
+        function saveWinnersToLeanCloud() {
+            const LotteryResult = AV.Object.extend('LotteryResult');
+            const result = new LotteryResult();
+
+            result.set('winners', state.winners);
+            result.set('timestamp', new Date());
+            result.set('totalParticipants', state.participants.length);
+            result.set('roomId', currentRoomId);
+            result.set('sessionId', 'default');
+
+            return result.save();
+        }
+
+        // 清空抽签结果（新增）
+        function clearLotteryResultFromLeanCloud() {
+            const query = new AV.Query('LotteryResult');
+            query.equalTo('roomId', currentRoomId);
+            return query.find().then(results => {
+                return Promise.all(results.map(obj => obj.destroy()));
+            });
+        }
+
+        function handleLogin() {
+            const password = elements.hostPassword.value.trim();
+            if (!password) {
+                showNotification(elements.loginError, '请输入密码', 'error');
+                return;
+            }
+
+            // 实际应用中，这里应该验证LeanCloud中存储的密码
+            if (password === state.hostPassword) {
+                state.isLoggedIn = true;
+                showNotification(elements.hostNotification, '登录成功！', 'success');
+
+                // 切换到房主面板
+                elements.views.forEach(v => v.classList.remove('active'));
+                document.getElementById('host-panel').classList.add('active');
+
+                document.querySelector('[data-view="host-panel"]').disabled = false;
+
+                // 更新标签页状态
+                elements.tabs.forEach(tab => {
+                    if (tab.dataset.view === 'host-login') {
+                        tab.classList.remove('active');
+                    } else if (tab.dataset.view === 'host-panel') {
+                        tab.classList.add('active');
+                        tab.disabled = false;
+                    }
+                });
+
+                // 加载设置和参与者
+                loadSettingsFromLeanCloud().then(() => {
+                    updateSettingsUI();
+                    return Promise.all([
+                        loadParticipantsFromLeanCloud(),
+                        loadWinnersFromLeanCloud()
+                    ]);
+                }).then(() => {
+                    renderParticipants();
+                    renderWinners();
+                    renderGuestResults();
+                }).catch(err => {
+                    console.error(err);
+                    showNotification(elements.hostNotification, '加载数据失败', 'error');
+                });
+            } else {
+                showNotification(elements.loginError, '密码错误', 'error');
+            }
+        }
+
+        function updateSettingsUI() {
+            elements.winnersCount.value = state.settings.winnersCount;
+            elements.mandatoryWinners.value = state.settings.mandatoryWinners.join(',');
+            elements.mandatoryLosers.value = state.settings.mandatoryLosers.join(',');
+            elements.allowModify.checked = state.settings.allowModify;
+            elements.publicResults.checked = state.settings.publicResults;
+            elements.freeEntry.checked = state.settings.freeEntry;
+            elements.allowedNames.value = state.settings.allowedNames.join(',');
+            elements.allowedNamesContainer.style.display = state.settings.freeEntry ? 'none' : 'block';
+        }
+
+        function saveSettings() {
+            try {
+                // 基础设置赋值
+                state.settings.winnersCount = parseInt(elements.winnersCount.value) || 1;
+                state.settings.mandatoryWinners = elements.mandatoryWinners.value.split(',').map(s => s.trim()).filter(s => s);
+                state.settings.mandatoryLosers = elements.mandatoryLosers.value.split(',').map(s => s.trim()).filter(s => s);
+                state.settings.allowModify = elements.allowModify.checked;
+                state.settings.publicResults = elements.publicResults.checked;
+                state.settings.freeEntry = elements.freeEntry.checked;
+                state.settings.allowedNames = elements.allowedNames.value.split(',').map(s => s.trim()).filter(s => s);
+
+                // 去重 + 优先级处理：必定中签的人不能出现在必定不中签名单
+                state.settings.mandatoryLosers = state.settings.mandatoryLosers.filter(
+                    name => !state.settings.mandatoryWinners.includes(name)
+                );
+
+                saveSettingsToLeanCloud().then(() => {
+                    showNotification(elements.hostNotification, '设置已保存', 'success');
+                });
+            } catch (error) {
+                showNotification(elements.hostNotification, '保存设置失败: ' + error.message, 'error');
+            }
+        }
+
+        function changePassword() {
+            const newPassword = elements.newPassword.value.trim();
+            if (!newPassword) {
+                showNotification(elements.hostNotification, '请输入新密码', 'error');
+                return;
+            }
+
+            state.hostPassword = newPassword;
+            // 同步到LeanCloud
+            saveSettingsToLeanCloud().then(() => {
+                elements.newPassword.value = '';
+                showNotification(elements.hostNotification, '密码已修改', 'success');
+            });
+        }
+
+        function addParticipant() {
+            const name = elements.manualAdd.value.trim();
+            if (!name) {
+                showNotification(elements.hostNotification, '请输入姓名', 'error');
+                return;
+            }
+
+            if (state.participants.some(p => p.name === name)) {
+                showNotification(elements.hostNotification, '该参与者已存在', 'error');
+                return;
+            }
+
+            const participant = { name, isWinner: false, isLoser: false };
+            state.participants.push(participant);
+
+            saveParticipantToLeanCloud(participant).then(() => {
+                renderParticipants();
+                elements.manualAdd.value = '';
+                showNotification(elements.hostNotification, `已添加: ${name}`, 'success');
+            });
+        }
+
+        function removeParticipant(name) {
+            state.participants = state.participants.filter(p => p.name !== name);
+            removeParticipantFromLeanCloud(name).then(() => {
+                renderParticipants();
+                showNotification(elements.hostNotification, `已删除: ${name}`, 'success');
+            });
+        }
+
+        function updateParticipantName(oldName, newName) {
+            // 检查新姓名是否重复
+            if (state.participants.some(p => p.name === newName)) {
+                showNotification(elements.hostNotification, '新姓名已存在', 'error');
+                return Promise.reject('姓名重复');
+            }
+
+            const participant = state.participants.find(p => p.name === oldName);
+            if (participant) {
+                participant.name = newName;
+                return updateParticipantInLeanCloud(oldName, { name: newName }).then(() => {
+                    renderParticipants();
+                    showNotification(elements.hostNotification, `姓名已更新: ${oldName} → ${newName}`, 'success');
+                });
+            }
+            return Promise.reject('参与者不存在');
+        }
+
+        function clearAllParticipants() {
+            if (!confirm('确定要清空所有参与者吗？此操作不可恢复。')) {
+                return;
+            }
+
+            clearAllFromLeanCloud().then(() => {
+                state.participants = [];
+                renderParticipants();
+                showNotification(elements.hostNotification, '已清空所有参与者', 'success');
+            });
+        }
+
+        function startLottery() {
+            if (state.participants.length === 0) {
+                showNotification(elements.hostNotification, '抽签池为空，无法开始', 'error');
+                return;
+            }
+
+            if (state.lotteryStatus === 'running') {
+                showNotification(elements.hostNotification, '抽签已在进行中', 'info');
+                return;
+            }
+
+            state.lotteryStatus = 'running';
+            updateLotteryStatusUI();
+            showNotification(elements.hostNotification, '抽签开始...', 'info');
+
+            // 模拟抽签过程
+            setTimeout(() => {
+                performLottery();
+            }, 1000);
+        }
+
+        function performLottery() {
+            // 确保必定中签和不中签名单无重复
+            state.settings.mandatoryLosers = state.settings.mandatoryLosers.filter(
+                name => !state.settings.mandatoryWinners.includes(name)
+            );
+
+            // 过滤必定不中签者
+            let eligible = state.participants.filter(p =>
+                !state.settings.mandatoryLosers.includes(p.name)
+            );
+
+            // 确保必定中签者包含在结果中
+            const mandatoryWinners = state.settings.mandatoryWinners.filter(name =>
+                state.participants.some(p => p.name === name)
+            );
+
+            // 计算还需抽取的中签人数
+            let remainingWinners = state.settings.winnersCount - mandatoryWinners.length;
+            if (remainingWinners < 0) remainingWinners = 0;
+
+            // 从合格者中随机抽取剩余中签名额
+            const randomWinners = [];
+            const pool = eligible.filter(p => !mandatoryWinners.includes(p.name));
+
+            for (let i = 0; i < remainingWinners && pool.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                randomWinners.push(pool[randomIndex].name);
+                pool.splice(randomIndex, 1);
+            }
+
+            // 合并结果
+            state.winners = [...mandatoryWinners, ...randomWinners];
+
+            // 更新参与者状态
+            state.participants.forEach(p => {
+                if (state.winners.includes(p.name)) {
+                    p.isWinner = true;
+                    p.isLoser = false;
+                } else if (state.settings.mandatoryLosers.includes(p.name)) {
+                    p.isLoser = true;
+                    p.isWinner = false;
+                } else {
+                    p.isWinner = false;
+                    p.isLoser = false;
+                }
+            });
+
+            // 保存到LeanCloud
+            Promise.all([
+                saveWinnersToLeanCloud(),
+                ...state.participants.map(p =>
+                    updateParticipantInLeanCloud(p.name, {
+                        isWinner: p.isWinner,
+                        isMandatoryLoser: p.isLoser,
+                        isMandatoryWinner: state.settings.mandatoryWinners.includes(p.name)
+                    })
+                )
+            ]).then(() => {
+                state.lotteryStatus = 'completed';
+                updateLotteryStatusUI();
+                renderParticipants();
+                renderWinners();
+                renderGuestResults();
+                showNotification(elements.hostNotification, '抽签完成！', 'success');
+            });
+        }
+
+        function pauseLottery() {
+            if (state.lotteryStatus === 'running') {
+                state.lotteryStatus = 'paused';
+                updateLotteryStatusUI();
+                showNotification(elements.hostNotification, '抽签已暂停', 'info');
+            } else if (state.lotteryStatus === 'paused') {
+                state.lotteryStatus = 'running';
+                updateLotteryStatusUI();
+                showNotification(elements.hostNotification, '抽签继续', 'info');
+            } else {
+                showNotification(elements.hostNotification, '当前状态无法暂停/继续', 'info');
+            }
+        }
+
+        function resetLottery() {
+            if (!confirm('确定要重置抽签吗？这将清除中签结果。')) {
+                return;
+            }
+
+            state.winners = [];
+            state.lotteryStatus = 'ready';
+            state.participants.forEach(p => {
+                p.isWinner = false;
+                p.isLoser = false;
+            });
+
+            // 更新LeanCloud中的参与者状态 + 清空抽签结果
+            Promise.all([
+                ...state.participants.map(p =>
+                    updateParticipantInLeanCloud(p.name, {
+                        isWinner: false,
+                        isMandatoryLoser: false
+                    })
+                ),
+                clearLotteryResultFromLeanCloud() // 新增：清空历史结果
+            ]).then(() => {
+                updateLotteryStatusUI();
+                renderParticipants();
+                renderWinners();
+                renderGuestResults();
+                showNotification(elements.hostNotification, '抽签已重置', 'success');
+            });
+        }
+
+        function handleFileImport(input, callback) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const names = content.split(/[\n,，]/)
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0); // 过滤空值
+
+                callback(names);
+                input.value = ''; // 清空文件输入
+            };
+            reader.readAsText(file);
+        }
+
+        function exportResults() {
+            if (state.winners.length === 0) {
+                showNotification(elements.hostNotification, '没有结果可导出', 'error');
+                return;
+            }
+
+            const content = `抽签结果\n时间: ${new Date().toLocaleString()}\n中签名单:\n${state.winners.join('\n')}`;
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '抽签结果.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showNotification(elements.hostNotification, '结果已导出', 'success');
+        }
+
+        // 访客功能
+        function handleGuestEnter() {
+            const name = elements.guestName.value.trim();
+            if (!name) {
+                showNotification(elements.guestNotification, '请输入您的姓名', 'error');
+                return;
+            }
+
+            // 检查是否允许进入
+            if (!state.settings.freeEntry) {
+                if (!state.settings.allowedNames.includes(name)) {
+                    showNotification(elements.guestNotification, '您不在允许进入的名单中', 'error');
+                    return;
+                }
+            }
+
+            // 检查是否已存在
+            if (state.participants.some(p => p.name === name)) {
+                showNotification(elements.guestNotification, '您已进入抽签池', 'info');
+                elements.guestName.value = '';
+                elements.guestManagement.style.display = 'block';
+                elements.guestEditName.value = name;
+                elements.guestEditName.dataset.currentName = name;
+                return;
+            }
+
+            // 添加到抽签池
+            const participant = { name, isWinner: false, isLoser: false };
+            state.participants.push(participant);
+
+            saveParticipantToLeanCloud(participant).then(() => {
+                renderParticipants();
+                elements.guestName.value = '';
+                elements.guestManagement.style.display = 'block';
+                elements.guestEditName.value = name;
+                elements.guestEditName.dataset.currentName = name;
+                showNotification(elements.guestNotification, '成功进入抽签池！', 'success');
+            });
+        }
+
+        function updateGuestName() {
+            if (!state.settings.allowModify) {
+                showNotification(elements.guestNotification, '房主不允许修改姓名', 'error');
+                return;
+            }
+
+            const oldName = elements.guestEditName.dataset.currentName || elements.guestEditName.value;
+            const newName = elements.guestEditName.value.trim();
+
+            if (!newName) {
+                showNotification(elements.guestNotification, '请输入新姓名', 'error');
+                return;
+            }
+
+            if (oldName === newName) {
+                showNotification(elements.guestNotification, '姓名未改变', 'info');
+                return;
+            }
+
+            if (state.participants.some(p => p.name === newName)) {
+                showNotification(elements.guestNotification, '该姓名已存在', 'error');
+                return;
+            }
+
+            updateParticipantName(oldName, newName).then(() => {
+                elements.guestEditName.dataset.currentName = newName;
+                showNotification(elements.guestNotification, '姓名已更新', 'success');
+            }).catch(err => {
+                showNotification(elements.guestNotification, err || '更新失败', 'error');
+            });
+        }
+
+        function removeSelf() {
+            if (!state.settings.allowModify) {
+                showNotification(elements.guestNotification, '房主不允许移除自己', 'error');
+                return;
+            }
+
+            const name = elements.guestEditName.dataset.currentName || elements.guestEditName.value;
+            if (!name) return;
+
+            removeParticipant(name);
+            elements.guestManagement.style.display = 'none';
+            elements.guestEditName.value = '';
+            elements.guestEditName.dataset.currentName = '';
+            showNotification(elements.guestNotification, '您已从抽签池移除', 'success');
+        }
+
+        // 事件监听器
+        // 标签页切换
+        elements.tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                if (tab.disabled) return;
+
+                elements.tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                elements.views.forEach(v => v.classList.remove('active'));
+                document.getElementById(tab.dataset.view).classList.add('active');
+
+                state.currentView = tab.dataset.view;
+
+                // 如果切换到访客视图，加载结果 + 重置访客界面状态
+                if (tab.dataset.view === 'guest') {
+                    elements.guestManagement.style.display = 'none'; // 刷新后重置
+                    elements.guestEditName.value = '';
+                    elements.guestEditName.dataset.currentName = '';
+                    loadWinnersFromLeanCloud().then(() => {
+                        renderGuestResults();
+                    });
+                }
+            });
+        });
+
+        // 房主登录
+        elements.loginBtn.addEventListener('click', handleLogin);
+        elements.hostPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+
+        // 设置相关
+        elements.freeEntry.addEventListener('change', (e) => {
+            elements.allowedNamesContainer.style.display = e.target.checked ? 'none' : 'block';
+        });
+
+        elements.importNames.addEventListener('click', () => {
+            elements.fileInput.click();
+        });
+
+        elements.fileInput.addEventListener('change', () => {
+            handleFileImport(elements.fileInput, (names) => {
+                elements.allowedNames.value = names.join(',');
+                showNotification(elements.hostNotification, `已导入 ${names.length} 个名字`, 'success');
+            });
+        });
+
+        elements.changePassword.addEventListener('click', changePassword);
+        elements.saveSettings.addEventListener('click', saveSettings);
+
+        // 抽签控制
+        elements.startLottery.addEventListener('click', startLottery);
+        elements.pauseLottery.addEventListener('click', pauseLottery);
+        elements.resetLottery.addEventListener('click', resetLottery);
+
+        // 参与者管理
+        elements.addParticipant.addEventListener('click', addParticipant);
+        elements.manualAdd.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addParticipant();
+        });
+
+        elements.importParticipants.addEventListener('click', () => {
+            elements.participantsFile.click();
+        });
+
+        elements.participantsFile.addEventListener('change', () => {
+            handleFileImport(elements.participantsFile, (names) => {
+                // 过滤已存在的参与者
+                const newParticipants = names.filter(name => 
+                    !state.participants.some(p => p.name === name)
+                ).map(name => ({
+                    name,
+                    isWinner: false,
+                    isLoser: false
+                }));
+
+                state.participants.push(...newParticipants);
+
+                // 批量保存到LeanCloud
+                Promise.all(newParticipants.map(p => saveParticipantToLeanCloud(p)))
+                    .then(() => {
+                        renderParticipants();
+                        showNotification(elements.hostNotification, `已导入 ${newParticipants.length} 个新参与者`, 'success');
+                    });
+            });
+        });
+
+        elements.clearAll.addEventListener('click', clearAllParticipants);
+        elements.exportResults.addEventListener('click', exportResults);
+
+        // 访客功能
+        elements.enterLottery.addEventListener('click', handleGuestEnter);
+        elements.guestName.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleGuestEnter();
+        });
+
+        elements.updateName.addEventListener('click', updateGuestName);
+        elements.removeSelf.addEventListener('click', removeSelf);
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 检查LeanCloud配置
+            if (LEAN_CONFIG.appId === 'YOUR_APP_ID') {
+                showNotification(elements.hostNotification, '请配置LeanCloud App ID和App Key', 'error');
+                showNotification(elements.guestNotification, '请配置LeanCloud App ID和App Key', 'error');
+            }
+
+            // 初始化访客界面状态（刷新后重置）
+            elements.guestManagement.style.display = 'none';
+            elements.guestEditName.value = '';
+            
+            console.log('系统初始化完成');
+        });
+    </script>
+</body>
+</html>
